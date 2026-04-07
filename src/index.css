@@ -1,0 +1,120 @@
+* {
+  margin: 0;
+}
+
+/* ---------------- Navbar ---------------- */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+}
+
+.logo {
+  color: green;
+}
+
+.nav-links a {
+  margin: 0px 15px;
+  text-decoration: none;
+  color: black;
+}
+
+.auth-buttons button {
+  margin-left: 10px;
+  padding: 8px 15px;
+  border-radius: 5px;
+  ;
+}
+
+.login {
+  border: 2px solid green;
+  background-color: white;
+}
+
+.sign-up {
+  background-color: green;
+  color: white;
+  border: none;
+}
+
+/* ------------------  Home Page ------------------- */
+
+.hero {
+  height: 90vh;
+  text-align: center;
+  padding-top: 100px;
+  background: linear-gradient(to right, #c8f7dc, #9be7c4);
+}
+
+.hero h1 {
+  font-size: 48px;
+}
+
+.hero p {
+  margin: 20px;
+  font-size: 18px;
+}
+
+.hero-buttons button {
+  margin: 10px;
+  padding: 12px 20px;
+  border-radius: 10px;
+
+}
+
+.primary {
+  background: green;
+  color: white;
+  border: none;
+}
+
+.secondary {
+  background: rgb(249, 247, 247);
+  border: 1px solid green;
+}
+
+.stats {
+  margin-top: 50px;
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+}
+
+/* ------------------ Sign Up and Login Page ------------------*/
+
+.auth-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to right, #0f9d58, #34d399);
+}
+
+.card {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  width: 300px;
+  text-align: center;
+}
+
+.card input {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.card button {
+  width: 100%;
+  padding: 10px;
+  background: green;
+  color: white;
+  border: none;
+  border-radius: 8px;
+}
+
+/* ----------------  ---------------- */
