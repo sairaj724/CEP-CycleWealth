@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
+import {
     PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
     BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line
 } from 'recharts';
 import './scrapDealer.css';
 import '../components/SharedNavbar.css'
-import SharedNavbar from '../components/SharedNavbar';
+import Navbar2 from '../components/Navbar2';
 import supabaseClient from '../supabase-config';
 
 // Colors for pie chart
@@ -36,7 +36,7 @@ function ScrapDealer() {
 
         const user = JSON.parse(sessionUser);
         setCurrentUser(user);
-        
+
         // Verify user is a scrap dealer
         if (user.role !== 'ScrapDealer') {
             navigate('/dashboard');
@@ -145,7 +145,7 @@ function ScrapDealer() {
     if (loading) {
         return (
             <div className="scrap-dealer-page">
-                <SharedNavbar user={currentUser} />
+                <Navbar2 user={currentUser} />
                 <div className="scrap-dealer-main loading-container">
                     <div className="loading-spinner">
                         <div className="spinner"></div>
@@ -159,7 +159,7 @@ function ScrapDealer() {
     if (error) {
         return (
             <div className="scrap-dealer-page">
-                <SharedNavbar user={currentUser} />
+                <Navbar2 user={currentUser} />
                 <div className="scrap-dealer-main error-container">
                     <div className="error-card">
                         <span className="error-icon">⚠️</span>
@@ -177,7 +177,7 @@ function ScrapDealer() {
     if (!profile) {
         return (
             <div className="scrap-dealer-page">
-                <SharedNavbar user={currentUser} />
+                <Navbar2 user={currentUser} />
                 <div className="scrap-dealer-main error-container">
                     <div className="error-card">
                         <span className="error-icon">👤</span>
@@ -194,7 +194,7 @@ function ScrapDealer() {
 
     return (
         <div className="scrap-dealer-page">
-            <SharedNavbar user={currentUser} />
+            <Navbar2 user={currentUser} />
             <div className="scrap-dealer-main">
                 <div className="scrap-dealer-container">
                     {/* Welcome Banner */}
@@ -277,9 +277,11 @@ function ScrapDealer() {
                             <div className="progress-bar-bg">
                                 <div
                                     className="progress-bar-fill"
-                                    style={{ width: `${stats.totalCollected > 0
-                                        ? (stats.sentToRecycling / stats.totalCollected) * 100
-                                        : 0}%` }}
+                                    style={{
+                                        width: `${stats.totalCollected > 0
+                                            ? (stats.sentToRecycling / stats.totalCollected) * 100
+                                            : 0}%`
+                                    }}
                                 ></div>
                             </div>
                         </div>
@@ -306,7 +308,7 @@ function ScrapDealer() {
                                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                 ))}
                                             </Pie>
-                                            <Tooltip 
+                                            <Tooltip
                                                 formatter={(value) => `${value} kg`}
                                                 contentStyle={{ backgroundColor: '#fff', border: '2px solid #0f9d58' }}
                                             />
@@ -320,15 +322,15 @@ function ScrapDealer() {
                                     <ResponsiveContainer width="100%" height={350}>
                                         <BarChart data={stats.materialStats}>
                                             <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                                            <XAxis 
-                                                dataKey="name" 
+                                            <XAxis
+                                                dataKey="name"
                                                 angle={-45}
                                                 textAnchor="end"
                                                 height={100}
                                                 interval={0}
                                             />
                                             <YAxis label={{ value: 'Weight (kg)', angle: -90, position: 'insideLeft' }} />
-                                            <Tooltip 
+                                            <Tooltip
                                                 formatter={(value) => `${value} kg`}
                                                 contentStyle={{ backgroundColor: '#fff', border: '2px solid #0f9d58' }}
                                             />
