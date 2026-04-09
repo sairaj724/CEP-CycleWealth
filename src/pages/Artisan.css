@@ -1,0 +1,818 @@
+/* Artisan Page Styles */
+
+.artisan-page {
+    min-height: 100vh;
+    background: #f5f5f5;
+}
+
+.artisan-navbar {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.artisan-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-size: 18px;
+    color: #666;
+}
+
+/* Main Content */
+.artisan-main {
+    padding: 30px 50px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* User Avatar */
+.user-avatar-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0f9d58, #34d399);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    user-select: none;
+}
+
+.user-avatar-circle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(15, 157, 88, 0.4);
+}
+
+/* Logout Dropdown */
+.logout-dropdown {
+    position: absolute;
+    top: 55px;
+    right: 40px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.logout-dropdown button {
+    padding: 12px 25px;
+    background: white;
+    border: none;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: background 0.3s ease;
+}
+
+.logout-dropdown button:hover {
+    background: #f5f5f5;
+    color: #f44336;
+}
+
+/* Auth Buttons */
+.auth-buttons {
+    position: relative;
+}
+
+/* Welcome Section */
+.artisan-welcome {
+    background: white;
+    padding: 25px 35px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.artisan-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.artisan-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #9c27b0, #ce93d8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: white;
+    font-weight: bold;
+}
+
+.artisan-title h2 {
+    color: #333;
+    margin: 0 0 5px 0;
+    font-size: 24px;
+}
+
+.artisan-title p {
+    margin: 0;
+    color: #9c27b0;
+    font-weight: 500;
+}
+
+/* Stats Section */
+.artisan-stats-section {
+    background: white;
+    padding: 30px 35px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.artisan-stats-section h2 {
+    color: #333;
+    margin: 0 0 25px 0;
+    font-size: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.stat-card {
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    color: white;
+}
+
+.stat-card.listed {
+    background: linear-gradient(135deg, #2196F3, #64B5F6);
+}
+
+.stat-card.sold {
+    background: linear-gradient(135deg, #0f9d58, #34d399);
+}
+
+.stat-card.earnings {
+    background: linear-gradient(135deg, #9c27b0, #ce93d8);
+}
+
+.stat-card.active {
+    background: linear-gradient(135deg, #FF9800, #FFB74D);
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.stat-label {
+    font-size: 14px;
+    opacity: 0.95;
+}
+
+/* Progress Section */
+.artisan-progress-section {
+    background: white;
+    padding: 30px 35px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.artisan-progress-section h2 {
+    color: #333;
+    margin: 0 0 20px 0;
+    font-size: 20px;
+}
+
+.progress-card {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.progress-card h4 {
+    margin: 0 0 15px 0;
+    color: #666;
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 12px;
+    background: #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(to right, #9c27b0, #ce93d8);
+    border-radius: 6px;
+    transition: width 0.5s ease;
+}
+
+.progress-card p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+/* Action Cards */
+.action-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.action-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.buy-scrap-card {
+    border-top: 4px solid #0f9d58;
+}
+
+.sell-product-card {
+    border-top: 4px solid #9c27b0;
+}
+
+.action-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.action-card h3 {
+    color: #333;
+    margin: 0 0 12px 0;
+    font-size: 20px;
+}
+
+.action-card p {
+    color: #666;
+    margin: 0 0 20px 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.action-btn {
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, #0f9d58, #34d399);
+    color: white;
+}
+
+.action-btn.secondary {
+    background: linear-gradient(135deg, #9c27b0, #ce93d8);
+    color: white;
+}
+
+.action-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Buy Scrap Section */
+.buy-scrap-section {
+    background: white;
+    padding: 30px 35px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.buy-scrap-section h2 {
+    color: #333;
+    margin: 0 0 10px 0;
+}
+
+.section-subtitle {
+    color: #666;
+    margin: 0 0 25px 0;
+    font-size: 14px;
+}
+
+.scrap-dealers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.dealer-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px;
+    border: 1px solid #e8e8e8;
+    border-radius: 10px;
+    background: #fafafa;
+    transition: box-shadow 0.3s ease;
+}
+
+.dealer-card:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.dealer-info h3 {
+    margin: 0 0 8px 0;
+    color: #333;
+}
+
+.rating-stars {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 10px;
+}
+
+.star {
+    color: #ddd;
+    font-size: 16px;
+}
+
+.star.filled {
+    color: #ffc107;
+}
+
+.dealer-info .materials {
+    color: #666;
+    margin: 0 0 5px 0;
+    font-size: 14px;
+}
+
+.dealer-info .price {
+    color: #0f9d58;
+    font-weight: 600;
+    margin: 0 0 5px 0;
+}
+
+.dealer-info .distance {
+    color: #999;
+    font-size: 13px;
+}
+
+.dealer-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.buy-scrap-btn,
+.contact-btn {
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+    min-width: 140px;
+}
+
+.buy-scrap-btn {
+    background: linear-gradient(135deg, #0f9d58, #34d399);
+    color: white;
+}
+
+.buy-scrap-btn:hover {
+    transform: scale(1.02);
+}
+
+.contact-btn {
+    background: #f5f5f5;
+    color: #333;
+    border: 1px solid #e0e0e0;
+}
+
+.contact-btn:hover {
+    background: #e8e8e8;
+}
+
+/* Sell Products Section */
+.sell-products-section {
+    background: white;
+    padding: 30px 35px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.sell-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.sell-header h2 {
+    color: #333;
+    margin: 0;
+}
+
+.add-product-btn {
+    padding: 12px 25px;
+    background: linear-gradient(135deg, #9c27b0, #ce93d8);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.add-product-btn:hover {
+    transform: scale(1.02);
+}
+
+.products-table {
+    overflow-x: auto;
+}
+
+.products-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.products-table th {
+    text-align: left;
+    padding: 15px;
+    background: #f8f9fa;
+    color: #666;
+    font-weight: 600;
+    font-size: 14px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.products-table td {
+    padding: 15px;
+    border-bottom: 1px solid #e8e8e8;
+    font-size: 14px;
+}
+
+.product-icon {
+    font-size: 24px;
+    margin-right: 10px;
+}
+
+.status-tag {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-tag.active {
+    background: #e8f5e9;
+    color: #0f9d58;
+}
+
+.status-tag.low_stock {
+    background: #fff3e0;
+    color: #ff9800;
+}
+
+.status-tag.sold_out {
+    background: #ffebee;
+    color: #f44336;
+}
+
+.edit-btn,
+.delete-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    border: none;
+    margin-right: 5px;
+}
+
+.edit-btn {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.delete-btn {
+    background: #ffebee;
+    color: #f44336;
+}
+
+/* Inventory Section */
+.inventory-section {
+    background: white;
+    padding: 30px 35px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.inventory-section h2 {
+    color: #333;
+    margin: 0 0 25px 0;
+    font-size: 20px;
+}
+
+.inventory-section h3 {
+    color: #666;
+    margin: 30px 0 20px 0;
+    font-size: 18px;
+}
+
+.inventory-stats {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.inv-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 40px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.inv-stat .label {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.inv-stat .value {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.inv-stat .value.listed {
+    color: #2196F3;
+}
+
+.inv-stat .value.sold {
+    color: #0f9d58;
+}
+
+.inv-stat .value.remaining {
+    color: #ff9800;
+}
+
+/* Product Performance */
+.product-performance {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.performance-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.perf-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    min-width: 250px;
+}
+
+.perf-icon {
+    font-size: 32px;
+}
+
+.perf-info h4 {
+    margin: 0 0 5px 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.perf-info p {
+    margin: 0;
+    color: #666;
+    font-size: 13px;
+}
+
+.perf-bar {
+    flex: 1;
+    height: 10px;
+    background: #e0e0e0;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.perf-fill {
+    height: 100%;
+    background: linear-gradient(to right, #9c27b0, #ce93d8);
+    border-radius: 5px;
+    transition: width 0.5s ease;
+}
+
+.perf-percent {
+    min-width: 50px;
+    text-align: right;
+    font-weight: 600;
+    color: #9c27b0;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.sell-modal {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #333;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #666;
+    line-height: 1;
+}
+
+.close-modal:hover {
+    color: #333;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #9c27b0;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Icon Selector */
+.icon-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.icon-option {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    background: #f5f5f5;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.icon-option:hover {
+    background: #e8e8e8;
+}
+
+.icon-option.selected {
+    background: #f3e5f5;
+    border-color: #9c27b0;
+}
+
+.submit-product-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #9c27b0, #ce93d8);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.submit-product-btn:hover {
+    transform: scale(1.02);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .artisan-main {
+        padding: 20px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .action-cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .inventory-stats {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .dealer-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .dealer-actions {
+        width: 100%;
+    }
+
+    .buy-scrap-btn,
+    .contact-btn {
+        width: 100%;
+    }
+}

@@ -1,0 +1,596 @@
+/* Consumer Page Styles */
+
+.consumer-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+/* Main Content Container */
+.consumer-main {
+  padding: 30px 40px;
+  min-height: calc(100vh - 70px);
+}
+
+/* Welcome Card */
+.consumer-welcome-card {
+  background: white;
+  padding: 25px 35px;
+  border-radius: 12px;
+  max-width: 900px;
+  margin: 0 auto 25px auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.consumer-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.consumer-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0f9d58, #34d399);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: white;
+  font-weight: bold;
+}
+
+.consumer-title h2 {
+  color: #333;
+  margin: 0 0 5px 0;
+  font-size: 24px;
+}
+
+.consumer-title p {
+  margin: 0;
+  color: #0f9d58;
+  font-weight: 500;
+}
+
+/* Action Cards Grid */
+.action-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 25px;
+  max-width: 900px;
+  margin: 0 auto 35px auto;
+}
+
+.action-card {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.action-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.buy-card {
+  border-top: 4px solid #0f9d58;
+}
+
+.dealers-card {
+  border-top: 4px solid #2196F3;
+}
+
+.action-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.action-card h3 {
+  color: #333;
+  margin: 0 0 12px 0;
+  font-size: 20px;
+}
+
+.action-card p {
+  color: #666;
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.action-btn {
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, #0f9d58, #34d399);
+  color: white;
+}
+
+.action-btn.secondary {
+  background: linear-gradient(135deg, #2196F3, #64B5F6);
+  color: white;
+}
+
+.action-btn:hover {
+  transform: scale(1.05);
+}
+
+/* Scrap Dealers Section - JustDial Style */
+.dealers-section {
+  background: white;
+  padding: 30px 35px;
+  border-radius: 12px;
+  max-width: 900px;
+  margin: 0 auto 30px auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.dealers-header {
+  margin-bottom: 25px;
+}
+
+.dealers-header h2 {
+  color: #333;
+  margin: 0 0 20px 0;
+  font-size: 22px;
+}
+
+.search-bar {
+  display: flex;
+  gap: 10px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 14px 18px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: border-color 0.3s ease;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: #0f9d58;
+}
+
+.search-btn {
+  padding: 14px 28px;
+  background: #0f9d58;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.search-btn:hover {
+  background: #0d8b4d;
+}
+
+/* Filters Bar */
+.filters-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 8px 18px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+  border-color: #0f9d58;
+  color: #0f9d58;
+}
+
+.filter-btn.active {
+  background: #0f9d58;
+  color: white;
+  border-color: #0f9d58;
+}
+
+/* Dealers List */
+.dealers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dealer-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 25px;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  background: #fafafa;
+  transition: box-shadow 0.3s ease;
+}
+
+.dealer-item:hover {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.dealer-main-info {
+  flex: 1;
+  padding-right: 25px;
+}
+
+.dealer-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.dealer-name {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.verified-badge {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dealer-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  color: #ddd;
+  font-size: 16px;
+}
+
+.star.filled {
+  color: #ffc107;
+}
+
+.star.half {
+  background: linear-gradient(90deg, #ffc107 50%, #ddd 50%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.rating-text {
+  color: #333;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.reviews-count {
+  color: #666;
+  font-size: 13px;
+}
+
+.years-badge {
+  background: #f5f5f5;
+  color: #666;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  margin-left: 5px;
+}
+
+.dealer-address {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.location-icon {
+  font-size: 16px;
+  margin-top: 2px;
+}
+
+.dealer-address p {
+  margin: 0;
+  color: #555;
+  font-size: 14px;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.distance-badge {
+  background: #e8f5e9;
+  color: #0f9d58;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dealer-materials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.material-tag {
+  background: #fff3e0;
+  color: #e65100;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.dealer-status {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.status-badge {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.status-badge.open {
+  color: #0f9d58;
+}
+
+.status-badge.closed {
+  color: #f44336;
+}
+
+.timing {
+  color: #666;
+  font-size: 13px;
+}
+
+/* Auth Buttons Container */
+.auth-buttons {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* User Avatar Circle in Navbar */
+.user-avatar-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0f9d58, #34d399);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  user-select: none;
+}
+
+.user-avatar-circle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(15, 157, 88, 0.4);
+}
+
+/* Logout Dropdown */
+.logout-dropdown {
+  position: absolute;
+  top: 55px;
+  right: 40px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.logout-dropdown button {
+  padding: 12px 25px;
+  background: white;
+  border: none;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.3s ease;
+}
+
+.logout-dropdown button:hover {
+  background: #f5f5f5;
+  color: #f44336;
+}
+
+/* Dealer Actions */
+.dealer-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 180px;
+}
+
+.get-contact-btn {
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  border: none;
+  background: linear-gradient(135deg, #0f9d58, #34d399);
+  color: white;
+}
+
+.get-contact-btn:hover {
+  background: linear-gradient(135deg, #0d8b4d, #2bc889);
+  transform: scale(1.02);
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.page-btn {
+  padding: 10px 18px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.page-btn:hover {
+  border-color: #0f9d58;
+  color: #0f9d58;
+}
+
+.page-btn.active {
+  background: #0f9d58;
+  color: white;
+  border-color: #0f9d58;
+}
+
+/* Consumer Stats Section */
+.consumer-stats-section {
+  background: white;
+  padding: 30px 35px;
+  border-radius: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.consumer-stats-section h2 {
+  color: #333;
+  margin: 0 0 25px 0;
+  font-size: 20px;
+  text-align: center;
+}
+.stats-grid.consumer-stats{
+  display: flex;
+  justify-content: center;
+}
+
+.consumer-stats {
+  display: flex;
+  justify-content: flex-center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.consumer-stats .stat-card {
+  padding: 25px;
+  border-radius: 10px;
+  text-align: center;
+  color: white;
+  min-width: 160px;
+  flex: 0 0 auto;
+}
+
+.consumer-stats .stat-card.eco {
+  background: linear-gradient(135deg, #0f9d58, #34d399);
+}
+
+.consumer-stats .stat-card.orders {
+  background: linear-gradient(135deg, #FF9800, #FFB74D);
+}
+
+.consumer-stats .stat-value {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.consumer-stats .stat-label {
+  font-size: 14px;
+  opacity: 0.95;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .consumer-main {
+    padding: 20px;
+  }
+
+  .action-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dealer-item {
+    flex-direction: column;
+  }
+
+  .dealer-main-info {
+    padding-right: 0;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 20px;
+  }
+
+  .dealer-actions {
+    min-width: 100%;
+  }
+
+  .consumer-stats {
+    justify-content: center;
+  }
+
+  .consumer-stats .stat-card {
+    min-width: 140px;
+    flex: 1 1 140px;
+    max-width: 200px;
+  }
+
+  .search-bar {
+    flex-direction: column;
+  }
+
+  .filters-bar {
+    justify-content: flex-start;
+  }
+}
