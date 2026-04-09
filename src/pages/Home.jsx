@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Hero from "../components/Hero";
 import Footer from "../components/Footer";
-import Navbar2 from "../components/Navbar2";
+import HomeNavbar from "../components/HomeNavbar";
 
 function Home() {
     const [user, setUser] = useState(null);
@@ -20,7 +20,7 @@ function Home() {
 
     return (
         <>
-            <Navbar2 user={user} />
+            <HomeNavbar user={user} />
             <Hero />
             <Footer />
         </>

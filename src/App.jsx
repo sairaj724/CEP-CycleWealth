@@ -9,6 +9,9 @@ import Ecom from "./pages/Ecom";
 import Artisan from "./pages/Artisan";
 import Enterprise from "./pages/Enterprise";
 import CompanyOrder from "./pages/CompanyOrder";
+import About from "./pages/About";
+import Goals from "./pages/Goals";
+import Contact from "./pages/Contact";
 
 function App() {
   return (
@@ -24,6 +27,9 @@ function App() {
         <Route path="/artisan" element={<Artisan />} />
         <Route path="/enterprise" element={<Enterprise />} />
         <Route path="/companyorder" element={<CompanyOrder />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/goals" element={<Goals />} />
+        <Route path="/contact" element={<Contact />} />
       </Routes>
     </BrowserRouter>
   );

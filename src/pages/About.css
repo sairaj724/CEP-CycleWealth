@@ -1,0 +1,149 @@
+.about-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.about-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px 60px;
+}
+
+.about-hero {
+    text-align: center;
+    padding: 60px 20px 40px;
+}
+
+.about-hero h1 {
+    font-size: 48px;
+    font-weight: 700;
+    color: #1a1f2e;
+    margin-bottom: 15px;
+}
+
+.about-tagline {
+    font-size: 20px;
+    color: #27ae60;
+    font-weight: 500;
+}
+
+.about-content {
+    background: white;
+    border-radius: 16px;
+    padding: 50px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.about-section {
+    margin-bottom: 50px;
+}
+
+.about-section:last-child {
+    margin-bottom: 0;
+}
+
+.about-section h2 {
+    font-size: 28px;
+    font-weight: 600;
+    color: #1a1f2e;
+    margin-bottom: 20px;
+    border-bottom: 3px solid #27ae60;
+    padding-bottom: 10px;
+    display: inline-block;
+}
+
+.about-section p {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #555;
+}
+
+.problem-section {
+    background: linear-gradient(135deg, #ff6b6b20, #ff8e8e20);
+    padding: 30px;
+    border-radius: 12px;
+    border-left: 4px solid #e74c3c;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.stat-box {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stat-box h3 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #e74c3c;
+    margin-bottom: 8px;
+}
+
+.stat-box p {
+    font-size: 14px;
+    color: #666;
+}
+
+.solution-section {
+    background: linear-gradient(135deg, #27ae6020, #2ecc7120);
+    padding: 30px;
+    border-radius: 12px;
+    border-left: 4px solid #27ae60;
+}
+
+.solution-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.solution-list li {
+    font-size: 16px;
+    color: #555;
+    padding: 12px 0;
+    border-bottom: 1px solid #e0e0e0;
+    line-height: 1.6;
+}
+
+.solution-list li:last-child {
+    border-bottom: none;
+}
+
+.solution-list li strong {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+.impact-section {
+    background: linear-gradient(135deg, #3498db20, #5dade220);
+    padding: 30px;
+    border-radius: 12px;
+    border-left: 4px solid #3498db;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .about-hero h1 {
+        font-size: 32px;
+    }
+    
+    .about-content {
+        padding: 30px 20px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .about-section h2 {
+        font-size: 24px;
+    }
+}
