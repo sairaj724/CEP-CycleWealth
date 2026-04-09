@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import SharedNavbar from "../components/SharedNavbar";
 import supabaseClient from "../supabase-config";
 
 function Login() {
@@ -77,34 +78,36 @@ function Login() {
    };
 
    return(
-    <div className="auth-container">
-        <div className="card">
-            <h2>Login</h2>
+    <>
+        <div className="auth-container">
+            <div className="card">
+                <h2>Login</h2>
             
-            {error && <p style={{ color: "red", fontSize: "14px" }}>{error}</p>}
+                {error && <p style={{ color: "red", fontSize: "14px" }}>{error}</p>}
 
-            <form onSubmit={handleLogin}>
-                <input 
-                    type="email" 
-                    placeholder="Email" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                />
-                <input 
-                    type="password" 
-                    placeholder="Password" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
+                <form onSubmit={handleLogin}>
+                    <input 
+                        type="email" 
+                        placeholder="Email" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                    <input 
+                        type="password" 
+                        placeholder="Password" 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
 
-                <button type="submit" disabled={loading}>
-                    {loading ? "Logging in..." : "Login"}
-                </button>
-            </form>
+                    <button type="submit" disabled={loading}>
+                        {loading ? "Logging in..." : "Login"}
+                    </button>
+                </form>
+            </div>
         </div>
-    </div>
+    </>
    );
 }
 

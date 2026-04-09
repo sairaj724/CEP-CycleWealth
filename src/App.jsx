@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
 import SignUp from "./pages/SignUp";
 import ScrapDealer from "./pages/scrapDealer";
+import Connections from "./pages/Connections";
 
 function App() {
   return (
@@ -12,8 +12,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/scrapdealer" element={<ScrapDealer />} />
+        <Route path="/connections" element={<Connections />} />
       </Routes>
     </BrowserRouter>
   );

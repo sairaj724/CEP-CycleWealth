@@ -1,15 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { 
+    PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line
+} from 'recharts';
 import './scrapDealer.css';
+import '../components/SharedNavbar.css'
+import SharedNavbar from '../components/SharedNavbar';
 import supabaseClient from '../supabase-config';
+
+// Colors for pie chart
+const COLORS = ['#0f9d58', '#4CAF50', '#81C784', '#A5D6A7', '#C8E6C9', '#FF9800', '#2196F3', '#9C27B0'];
 
 function ScrapDealer() {
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
     const [stats, setStats] = useState({
         totalCollected: 0,
         sentToRecycling: 0,
-        remaining: 0
+        remaining: 0,
+        materialStats: []
     });
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -24,6 +35,7 @@ function ScrapDealer() {
         }
 
         const user = JSON.parse(sessionUser);
+        setCurrentUser(user);
         
         // Verify user is a scrap dealer
         if (user.role !== 'ScrapDealer') {
@@ -47,7 +59,7 @@ function ScrapDealer() {
             if (profileError) throw profileError;
 
             setProfile({
-                businessName: profileData["First name"] + " " + profileData["Last_Name"] + " Scrap Collection",
+                businessName: profileData["First name"] + " " + profileData["Last_Name"],
                 ownerName: profileData["First name"] + " " + profileData["Last_Name"],
                 firstName: profileData["First name"],
                 lastName: profileData["Last_Name"],
@@ -76,7 +88,8 @@ function ScrapDealer() {
                 setStats({
                     totalCollected: 0,
                     sentToRecycling: 0,
-                    remaining: 0
+                    remaining: 0,
+                    materialStats: []
                 });
             }
 
@@ -94,10 +107,24 @@ function ScrapDealer() {
             .reduce((sum, t) => sum + (t.weight_kg || 0), 0);
         const remaining = totalCollected - sentToRecycling;
 
+        // Group by material type for pie chart
+        const materialGroups = transactionsData.reduce((acc, t) => {
+            const material = t.material_type || 'Unknown';
+            if (!acc[material]) acc[material] = 0;
+            acc[material] += t.weight_kg || 0;
+            return acc;
+        }, {});
+
+        const materialStats = Object.entries(materialGroups).map(([name, value]) => ({
+            name,
+            value: Math.round(value)
+        })).sort((a, b) => b.value - a.value);
+
         setStats({
             totalCollected,
             sentToRecycling,
-            remaining
+            remaining,
+            materialStats
         });
     };
 
@@ -141,138 +168,193 @@ function ScrapDealer() {
 
     return (
         <div className="scrap-dealer-page">
-            {/* Navigation Bar */}
-            <div className="navbar">
-                <h2 className="logo">♻️ CycleWealth</h2>
-                <div className="nav-links">
-                    <a href="/">Home</a>
-                    <a href="#">Transactions</a>
-                    <a href="#">Connections</a>
-                </div>
-                <div className="auth-buttons">
-                    <button className="login">View Profile</button>
-                    <button className="sign-up" onClick={handleLogout}>Logout</button>
-                </div>
-            </div>
-
-            {/* Main Content */}
+            <SharedNavbar user={currentUser} />
             <div className="scrap-dealer-main">
-                {/* Profile Section */}
-                <div className="dealer-profile-card">
-                    <div className="dealer-header">
-                        <div className="dealer-avatar">
-                            {profile.firstName?.charAt(0)}{profile.lastName?.charAt(0)}
-                        </div>
-                        <div className="dealer-title">
-                            <h2>{profile.businessName}</h2>
-                            <p>{profile.role}</p>
-                        </div>
-                    </div>
-
-                    <div className="dealer-info-grid">
-                        <div className="profile-info-item">
-                            <span>First Name</span>
-                            <p>{profile.firstName}</p>
-                        </div>
-
-                        <div className="profile-info-item">
-                            <span>Last Name</span>
-                            <p>{profile.lastName}</p>
-                        </div>
-
-                        <div className="profile-info-item">
-                            <span>Email</span>
-                            <p>{profile.email}</p>
-                        </div>
-
-                        <div className="profile-info-item">
-                            <span>Role</span>
-                            <p>{profile.role}</p>
-                        </div>
-
-
-                        <div className="profile-info-item">
-                            <span>Member Since</span>
-                            <p>{profile.joinedDate}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Stats Section */}
-                <div className="dealer-stats-section">
-                    <h2>📊 Scrap Collection Statistics</h2>
-
-                    <div className="stats-grid">
-                        {/* Total Collected */}
-                        <div className="stat-card collected">
-                            <div className="stat-value">{stats.totalCollected.toLocaleString()}</div>
-                            <div className="stat-label">kg Total Collected</div>
-                        </div>
-
-                        {/* Sent to Recycling */}
-                        <div className="stat-card recycling">
-                            <div className="stat-value">{stats.sentToRecycling.toLocaleString()}</div>
-                            <div className="stat-label">kg Sent to Recycling</div>
-                        </div>
-
-                        {/* Remaining */}
-                        <div className="stat-card remaining">
-                            <div className="stat-value">{stats.remaining.toLocaleString()}</div>
-                            <div className="stat-label">kg Remaining</div>
-                        </div>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="progress-container">
-                        <p className="progress-label">
-                            Recycling Progress: {stats.totalCollected > 0 
-                                ? Math.round((stats.sentToRecycling / stats.totalCollected) * 100) 
-                                : 0}%
-                        </p>
-                        <div className="progress-bar-bg">
-                            <div 
-                                className="progress-bar-fill"
-                                style={{ width: `${stats.totalCollected > 0 
-                                    ? (stats.sentToRecycling / stats.totalCollected) * 100 
-                                    : 0}%` }}
-                            ></div>
-                        </div>
-                    </div>
-
-                    {/* Recent Transactions */}
-                    {transactions.length > 0 && (
-                        <div style={{ marginTop: '30px' }}>
-                            <h3 style={{ color: 'green', marginBottom: '15px' }}>Recent Transactions</h3>
-                            <div style={{ 
-                                maxHeight: '200px', 
-                                overflowY: 'auto',
-                                border: '1px solid #e0e0e0',
-                                borderRadius: '8px'
-                            }}>
-                                {transactions.slice(0, 5).map((transaction, index) => (
-                                    <div key={index} style={{
-                                        padding: '12px 15px',
-                                        borderBottom: '1px solid #e0e0e0',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <span>{transaction.material_type || 'Unknown Material'}</span>
-                                        <span style={{ 
-                                            fontWeight: 'bold',
-                                            color: transaction.status === 'sent_to_recycling' ? '#2196F3' : '#FF9800'
-                                        }}>
-                                            {transaction.weight_kg} kg
-                                        </span>
-                                    </div>
-                                ))}
+                <div className="scrap-dealer-container">
+                    {/* Profile Section */}
+                    <div className="dealer-section">
+                        <div className="dealer-header">
+                            <div className="dealer-avatar">
+                                {profile.firstName?.charAt(0)}{profile.lastName?.charAt(0)}
+                            </div>
+                            <div className="dealer-title">
+                                <h2>{profile.businessName}</h2>
+                                <p>{profile.role}</p>
                             </div>
                         </div>
-                    )}
+
+                        <div className="dealer-info-grid">
+                            <div className="profile-info-item">
+                                <span>First Name</span>
+                                <p>{profile.firstName}</p>
+                            </div>
+                            <div className="profile-info-item">
+                                <span>Last Name</span>
+                                <p>{profile.lastName}</p>
+                            </div>
+                            <div className="profile-info-item">
+                                <span>Email</span>
+                                <p>{profile.email}</p>
+                            </div>
+                            <div className="profile-info-item">
+                                <span>Role</span>
+                                <p>{profile.role}</p>
+                            </div>
+                            <div className="profile-info-item">
+                                <span>Member Since</span>
+                                <p>{profile.joinedDate}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Stats Section */}
+                    <div className="dealer-section">
+                        <h2 className="section-title">📊 Scrap Collection Statistics</h2>
+
+                        <div className="stats-grid">
+                            <div className="stat-card collected">
+                                <div className="stat-value">{stats.totalCollected.toLocaleString()}</div>
+                                <div className="stat-label">kg Total Collected</div>
+                            </div>
+                            <div className="stat-card recycling">
+                                <div className="stat-value">{stats.sentToRecycling.toLocaleString()}</div>
+                                <div className="stat-label">kg Sent to Recycling</div>
+                            </div>
+                            <div className="stat-card remaining">
+                                <div className="stat-value">{stats.remaining.toLocaleString()}</div>
+                                <div className="stat-label">kg Remaining</div>
+                            </div>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="progress-container">
+                            <p className="progress-label">
+                                Recycling Progress: {stats.totalCollected > 0
+                                    ? Math.round((stats.sentToRecycling / stats.totalCollected) * 100)
+                                    : 0}%
+                            </p>
+                            <div className="progress-bar-bg">
+                                <div
+                                    className="progress-bar-fill"
+                                    style={{ width: `${stats.totalCollected > 0
+                                        ? (stats.sentToRecycling / stats.totalCollected) * 100
+                                        : 0}%` }}
+                                ></div>
+                            </div>
+                        </div>
+
+                        {/* Pie Chart - Material Distribution */}
+                        {stats.materialStats.length > 0 && (
+                            <div className="charts-grid">
+                                <div className="chart-container">
+                                    <h3 className="chart-title">📦 Material Distribution</h3>
+                                    <ResponsiveContainer width="100%" height={350}>
+                                        <PieChart>
+                                            <Pie
+                                                data={stats.materialStats}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={110}
+                                                paddingAngle={4}
+                                                dataKey="value"
+                                                animationBegin={0}
+                                                animationDuration={800}
+                                            >
+                                                {stats.materialStats.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip 
+                                                formatter={(value) => `${value} kg`}
+                                                contentStyle={{ backgroundColor: '#fff', border: '2px solid #0f9d58' }}
+                                            />
+                                            <Legend />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                                <div className="chart-container">
+                                    <h3 className="chart-title">📊 Material Breakdown (Bar Chart)</h3>
+                                    <ResponsiveContainer width="100%" height={350}>
+                                        <BarChart data={stats.materialStats}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                                            <XAxis 
+                                                dataKey="name" 
+                                                angle={-45}
+                                                textAnchor="end"
+                                                height={100}
+                                                interval={0}
+                                            />
+                                            <YAxis label={{ value: 'Weight (kg)', angle: -90, position: 'insideLeft' }} />
+                                            <Tooltip 
+                                                formatter={(value) => `${value} kg`}
+                                                contentStyle={{ backgroundColor: '#fff', border: '2px solid #0f9d58' }}
+                                            />
+                                            <Bar dataKey="value" fill="#0f9d58" radius={[12, 12, 0, 0]} animationDuration={800} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Collection Status Chart */}
+                        {stats.totalCollected > 0 && (
+                            <div className="chart-container full-width">
+                                <h3 className="chart-title">♻️ Collection Status Overview</h3>
+                                <div className="status-overview">
+                                    <div className="status-item">
+                                        <div className="status-icon collected-icon">📥</div>
+                                        <div className="status-details">
+                                            <p className="status-value">{stats.totalCollected.toLocaleString()} kg</p>
+                                            <p className="status-name">Total Collected</p>
+                                            <p className="status-percentage">100%</p>
+                                        </div>
+                                    </div>
+                                    <div className="status-arrow">→</div>
+                                    <div className="status-item">
+                                        <div className="status-icon recycling-icon">♻️</div>
+                                        <div className="status-details">
+                                            <p className="status-value">{stats.sentToRecycling.toLocaleString()} kg</p>
+                                            <p className="status-name">Sent to Recycling</p>
+                                            <p className="status-percentage">{stats.totalCollected > 0 ? Math.round((stats.sentToRecycling / stats.totalCollected) * 100) : 0}%</p>
+                                        </div>
+                                    </div>
+                                    <div className="status-arrow">→</div>
+                                    <div className="status-item">
+                                        <div className="status-icon remaining-icon">📦</div>
+                                        <div className="status-details">
+                                            <p className="status-value">{stats.remaining.toLocaleString()} kg</p>
+                                            <p className="status-name">Remaining</p>
+                                            <p className="status-percentage">{stats.totalCollected > 0 ? Math.round((stats.remaining / stats.totalCollected) * 100) : 0}%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Recent Transactions */}
+                        {transactions.length > 0 && (
+                            <div className="transactions-section">
+                                <h3 className="transactions-title">Recent Transactions</h3>
+                                <div className="transactions-list">
+                                    {transactions.slice(0, 5).map((transaction, index) => (
+                                        <div key={index} className="transaction-item">
+                                            <span>{transaction.material_type || 'Unknown Material'}</span>
+                                            <span className={`transaction-weight ${transaction.status}`}>
+                                                {transaction.weight_kg} kg
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
     );
 }
+
 
 export default ScrapDealer;

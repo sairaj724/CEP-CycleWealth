@@ -11,14 +11,15 @@
   min-height: calc(100vh - 70px);
 }
 
-/* Profile Card */
-.dealer-profile-card {
-  background: white;
-  padding: 30px 40px;
-  border-radius: 15px;
-  max-width: 800px;
-  margin: 0 auto 30px auto;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+/* Container */
+.scrap-dealer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Section styling */
+.dealer-section {
+  margin-bottom: 30px;
 }
 
 .dealer-header {
@@ -44,14 +45,16 @@
 }
 
 .dealer-title h2 {
-  color: green;
+  color: #0f9d58;
   margin: 0 0 5px 0;
   font-size: 24px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .dealer-title p {
   margin: 0;
-  color: #666;
+  color: #333;
+  font-weight: 500;
 }
 
 /* Profile Info Grid */
@@ -86,20 +89,13 @@
   font-size: 15px;
 }
 
-/* Stats Section */
-.dealer-stats-section {
-  background: white;
-  padding: 30px 40px;
-  border-radius: 15px;
-  max-width: 800px;
-  margin: 0 auto;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.dealer-stats-section h2 {
-  color: green;
+/* Section Title */
+.section-title {
+  color: #0f9d58;
   margin: 0 0 25px 0;
   text-align: center;
+  font-size: 24px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Stats Grid */
@@ -170,4 +166,420 @@
   background: linear-gradient(to right, #0f9d58, #34d399);
   border-radius: 6px;
   transition: width 0.5s ease;
+}
+
+/* Chart Container */
+.chart-container {
+  margin-top: 30px;
+  padding: 25px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.chart-container:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.chart-container.full-width {
+  grid-column: 1 / -1;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 25px;
+  margin-top: 30px;
+}
+
+.chart-title {
+  color: #0f9d58;
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Status Overview */
+.status-overview {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 30px;
+  background: linear-gradient(135deg, #f8fdf9, #e8f5e9);
+  border-radius: 12px;
+  border: 2px solid #c8e6c9;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  min-width: 200px;
+  transition: transform 0.3s ease;
+}
+
+.status-item:hover {
+  transform: translateY(-3px);
+}
+
+.status-icon {
+  font-size: 48px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.status-icon.collected-icon {
+  background: linear-gradient(135deg, #0f9d58, #34d399);
+  padding: 12px;
+  border-radius: 12px;
+  color: white;
+}
+
+.status-icon.recycling-icon {
+  background: linear-gradient(135deg, #2196F3, #64B5F6);
+  padding: 12px;
+  border-radius: 12px;
+  color: white;
+}
+
+.status-icon.remaining-icon {
+  background: linear-gradient(135deg, #FF9800, #FFB74D);
+  padding: 12px;
+  border-radius: 12px;
+  color: white;
+}
+
+.status-details {
+  text-align: left;
+}
+
+.status-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #0f9d58;
+  margin: 0;
+}
+
+.status-name {
+  font-size: 14px;
+  color: #666;
+  margin: 5px 0;
+}
+
+.status-percentage {
+  font-size: 13px;
+  color: #999;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Transactions Section */
+.transactions-section {
+  margin-top: 30px;
+  padding: 25px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.transactions-title {
+  color: #0f9d58;
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.transactions-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 2px solid #e8f5e9;
+  border-radius: 10px;
+  background: white;
+}
+
+.transaction-item {
+  padding: 15px 20px;
+  border-bottom: 1px solid #e8f5e9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.transaction-item:hover {
+  background-color: #f8fdf9;
+}
+
+.transaction-item:last-child {
+  border-bottom: none;
+}
+
+.transaction-weight {
+  font-weight: bold;
+  font-size: 16px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background-color: #f0f0f0;
+}
+
+.transaction-weight.sent_to_recycling {
+  color: #2196F3;
+  background-color: #e3f2fd;
+}
+
+.transaction-weight.pending {
+  color: #FF9800;
+  background-color: #fff3e0;
+}
+
+/* Status Arrow */
+.status-arrow {
+  font-size: 32px;
+  color: #0f9d58;
+  font-weight: bold;
+  opacity: 0.6;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .scrap-dealer-main {
+    padding: 25px;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .status-overview {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .status-item {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .stat-card {
+    padding: 20px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+  }
+
+  .section-title {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .scrap-dealer-main {
+    padding: 15px;
+  }
+
+  .scrap-dealer-container {
+    max-width: 100%;
+  }
+
+  .dealer-header {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+
+  .dealer-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .stat-card {
+    padding: 15px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+  }
+
+  .chart-container {
+    padding: 15px;
+    margin-top: 20px;
+  }
+
+  .chart-title {
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+
+  .status-overview {
+    padding: 15px;
+  }
+
+  .status-item {
+    padding: 15px;
+    min-width: auto;
+  }
+
+  .status-icon {
+    font-size: 36px;
+  }
+
+  .status-value {
+    font-size: 18px;
+  }
+
+  .status-name {
+    font-size: 12px;
+  }
+
+  .status-percentage {
+    font-size: 11px;
+  }
+
+  .status-arrow {
+    font-size: 20px;
+    display: none;
+  }
+
+  .dealer-avatar {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+  }
+
+  .dealer-title h2 {
+    font-size: 18px;
+  }
+
+  .transactions-section {
+    padding: 15px;
+  }
+
+  .transactions-title {
+    font-size: 16px;
+  }
+
+  .transaction-item {
+    padding: 10px 15px;
+    flex-wrap: wrap;
+  }
+
+  .transaction-weight {
+    font-size: 14px;
+    padding: 4px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .scrap-dealer-main {
+    padding: 10px;
+  }
+
+  .dealer-avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+
+  .dealer-title h2 {
+    font-size: 16px;
+  }
+
+  .section-title {
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  .chart-container {
+    padding: 10px;
+    margin-top: 15px;
+  }
+
+  .charts-grid {
+    gap: 15px;
+  }
+
+  .chart-title {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .status-overview {
+    padding: 10px;
+  }
+
+  .status-item {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .status-icon {
+    font-size: 28px;
+    padding: 8px;
+  }
+
+  .status-value {
+    font-size: 16px;
+  }
+
+  .status-name {
+    font-size: 11px;
+  }
+
+  .status-percentage {
+    font-size: 10px;
+  }
+
+  .progress-container {
+    margin-top: 20px;
+  }
+
+  .progress-label {
+    font-size: 12px;
+  }
+
+  .transaction-item {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .transactions-title {
+    font-size: 14px;
+  }
 }

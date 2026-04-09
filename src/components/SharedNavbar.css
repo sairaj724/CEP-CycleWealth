@@ -1,0 +1,166 @@
+/* Shared Navbar Styles - Consistent across all pages */
+.shared-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 52px;
+    background: rgba(255, 255, 255, 0.95);
+    border-bottom: 1px solid rgba(15, 157, 88, 0.2);
+    gap: 16px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.shared-nav__logo {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f9d58;
+    white-space: nowrap;
+}
+
+.shared-nav__links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex: 1;
+    justify-content: center;
+}
+
+.shared-nav__link {
+    text-decoration: none;
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.shared-nav__link:hover {
+    color: #0f9d58;
+    background: rgba(15, 157, 88, 0.1);
+}
+
+.shared-nav__link--active {
+    color: #0f9d58;
+    background: rgba(15, 157, 88, 0.1);
+    font-weight: 600;
+}
+
+.shared-nav__badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #0f9d58;
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: 10px;
+    min-width: 16px;
+    text-align: center;
+    line-height: 1;
+}
+
+.shared-nav__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.shared-nav__btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.shared-nav__btn--ghost {
+    background: transparent;
+    color: #666;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.shared-nav__btn--ghost:hover {
+    background: rgba(15, 157, 88, 0.1);
+    color: #0f9d58;
+    border-color: rgba(15, 157, 88, 0.3);
+}
+
+.shared-nav__btn--primary {
+    background: #0f9d58;
+    color: white;
+    border: 1px solid #0f9d58;
+}
+
+.shared-nav__btn--primary:hover {
+    background: #0d8a4a;
+    border-color: #0d8a4a;
+}
+
+.shared-nav__btn--danger {
+    background: #dc3545;
+    color: white;
+    border: 1px solid #dc3545;
+}
+
+.shared-nav__btn--danger:hover {
+    background: #c82333;
+    border-color: #c82333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .shared-nav {
+        padding: 0 16px;
+    }
+    
+    .shared-nav__links {
+        gap: 16px;
+    }
+    
+    .shared-nav__link {
+        font-size: 13px;
+        padding: 4px 8px;
+    }
+    
+    .shared-nav__actions {
+        gap: 6px;
+    }
+    
+    .shared-nav__btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .shared-nav__logo {
+        font-size: 13px;
+    }
+    
+    .shared-nav__links {
+        gap: 12px;
+    }
+    
+    .shared-nav__link span {
+        display: none;
+    }
+    
+    .shared-nav__link::before {
+        content: attr(data-title);
+        font-size: 13px;
+    }
+}
