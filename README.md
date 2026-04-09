@@ -101,10 +101,16 @@ src/
 
 ---
 
-## 👨‍💻 Author
+## 👨‍💻 Contributer
+
+Ninad Dhote 
+
+
+Shudhodhan Jogdand
+
 
 Sairaj Desai
-B.Tech IT – VJTI Mumbai
+
 
 ---
 
