@@ -4,6 +4,15 @@ import './Artisan.css';
 import supabaseClient from '../supabase-config';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import {
+    getSkilledLaborProfile,
+    createOrGetSkilledLaborProfile,
+    updateSkilledLaborProfile,
+    getArtisanProducts,
+    addArtisanProduct,
+    updateArtisanProduct,
+    deleteArtisanProduct
+} from '../services/artisanService';
 
 
 function Artisan() {
@@ -13,6 +22,21 @@ function Artisan() {
     const [activeTab, setActiveTab] = useState('overview');
     const [showLogout, setShowLogout] = useState(false);
     const [showSellModal, setShowSellModal] = useState(false);
+    const [showProfileModal, setShowProfileModal] = useState(false);
+    const [error, setError] = useState(null);
+    const [savingProduct, setSavingProduct] = useState(false);
+    const [savingProfile, setSavingProfile] = useState(false);
+
+    // Profile form state
+    const [profileForm, setProfileForm] = useState({
+        firstName: '',
+        lastName: '',
+        address: '',
+        city: '',
+        state: '',
+        pinCode: '',
+        skills: ''
+    });
 
     // Mock scrap dealers for buying
     const [scrapDealers] = useState([
@@ -22,49 +46,81 @@ function Artisan() {
         { id: 4, name: "Eco Scrap Dealers", materials: "All Types", price: "₹25/kg", location: "4.2 km", rating: 4.3 }
     ]);
 
-    // Products inventory tracking
-    const [myProducts, setMyProducts] = useState([
-        { id: 1, name: "Recycled Paper Diary", category: "Stationery", price: 199, stock: 15, sold: 45, listed: 60, status: "active", image: "📓" },
-        { id: 2, name: "Glass Bottle Lamp", category: "Home Decor", price: 599, stock: 8, sold: 22, listed: 30, status: "active", image: "💡" },
-        { id: 3, name: "Tire Ottoman Seat", category: "Furniture", price: 1299, stock: 3, sold: 12, listed: 15, status: "low_stock", image: "🛋️" },
-        { id: 4, name: "Newspaper Basket", category: "Home Decor", price: 249, stock: 0, sold: 30, listed: 30, status: "sold_out", image: "🧺" }
-    ]);
+    // Products inventory tracking (loaded from database)
+    const [myProducts, setMyProducts] = useState([]);
 
     // New product form state
     const [newProduct, setNewProduct] = useState({
         name: '',
         description: '',
-        category: 'Stationery',
-        price: '',
-        stock: '',
-        ecoBadge: '',
-        image: '📦'
+        price: ''
     });
 
-    const categories = ['Stationery', 'Home Decor', 'Garden', 'Furniture', 'Accessories', 'Kitchen', 'Personal Care'];
-
     useEffect(() => {
-        const sessionUser = sessionStorage.getItem('user');
-        if (!sessionUser) {
-            navigate('/login');
-            return;
-        }
-
-        const user = JSON.parse(sessionUser);
-
-        if (user.role !== 'Artisan') {
-            navigate('/dashboard');
-            return;
-        }
-
-        setProfile({
-            firstName: user["First name"] || 'Artisan',
-            lastName: user["Last_Name"] || '',
-            email: user.email_address,
-            role: user.role
-        });
-        setLoading(false);
+        loadArtisanData();
     }, [navigate]);
+
+    const loadArtisanData = async () => {
+        try {
+            const sessionUser = sessionStorage.getItem('user');
+            if (!sessionUser) {
+                navigate('/login');
+                return;
+            }
+
+            const user = JSON.parse(sessionUser);
+
+            if (user.role !== 'Artisan') {
+                navigate('/dashboard');
+                return;
+            }
+
+            // Load or create skilled labor profile
+            let laborProfile = await getSkilledLaborProfile();
+            
+            if (!laborProfile) {
+                // Create profile from user data
+                try {
+                    laborProfile = await createOrGetSkilledLaborProfile({
+                        firstName: user["First name"] || 'Artisan',
+                        lastName: user["Last_Name"] || ''
+                    });
+                } catch (err) {
+                    console.error('Error creating labor profile:', err);
+                }
+            }
+
+            setProfile({
+                firstName: laborProfile?.first_name || user["First name"] || 'Artisan',
+                lastName: laborProfile?.last_name || user["Last_Name"] || '',
+                email: user.email_address,
+                role: user.role,
+                laborProfile: laborProfile
+            });
+
+            // Load products from database
+            const products = await getArtisanProducts();
+            if (products && products.length > 0) {
+                // Transform database products to frontend format
+                const formattedProducts = products.map(p => ({
+                    id: p.product_id,
+                    name: p.name,
+                    price: p.listed_price,
+                    sold: p.status === 'Sold' ? 1 : 0,
+                    listed: 1,
+                    status: p.status === 'Available' ? 'active' : p.status === 'Sold' ? 'sold_out' : 'low_stock',
+                    description: p.description
+                }));
+                setMyProducts(formattedProducts);
+            }
+
+            setLoading(false);
+        } catch (err) {
+            console.error('Error loading artisan data:', err);
+            setError('Failed to load profile data. Please try again.');
+            setLoading(false);
+        }
+    };
 
     const handleLogout = async () => {
         await supabaseClient.auth.signOut();
@@ -72,20 +128,109 @@ function Artisan() {
         navigate('/login');
     };
 
-    const handleAddProduct = (e) => {
-        e.preventDefault();
-        const product = {
-            id: myProducts.length + 1,
-            ...newProduct,
-            price: parseInt(newProduct.price),
-            stock: parseInt(newProduct.stock),
-            sold: 0,
-            listed: parseInt(newProduct.stock),
-            status: 'active'
-        };
-        setMyProducts([...myProducts, product]);
-        setNewProduct({ name: '', description: '', category: 'Stationery', price: '', stock: '', ecoBadge: '', image: '📦' });
+    const closeSellModal = () => {
         setShowSellModal(false);
+        setError(null);
+    };
+
+    const openSellModal = () => {
+        // Check if profile is complete
+        if (!profile?.laborProfile?.address || !profile?.laborProfile?.city) {
+            openProfileModal();
+            setError('Please complete your profile before adding products.');
+            return;
+        }
+        setShowSellModal(true);
+        setError(null);
+    };
+
+    const openProfileModal = () => {
+        setProfileForm({
+            firstName: profile?.laborProfile?.first_name || profile?.firstName || '',
+            lastName: profile?.laborProfile?.last_name || profile?.lastName || '',
+            address: profile?.laborProfile?.address || '',
+            city: profile?.laborProfile?.city || '',
+            state: profile?.laborProfile?.state || '',
+            pinCode: profile?.laborProfile?.pin_code || '',
+            skills: profile?.laborProfile?.skills || ''
+        });
+        setShowProfileModal(true);
+        setError(null);
+    };
+
+    const closeProfileModal = () => {
+        setShowProfileModal(false);
+        setError(null);
+    };
+
+    const handleSaveProfile = async (e) => {
+        e.preventDefault();
+        setSavingProfile(true);
+        setError(null);
+
+        try {
+            const updatedProfile = await updateSkilledLaborProfile({
+                firstName: profileForm.firstName,
+                lastName: profileForm.lastName,
+                address: profileForm.address,
+                city: profileForm.city,
+                state: profileForm.state,
+                pinCode: profileForm.pinCode,
+                skills: profileForm.skills
+            });
+
+            setProfile(prev => ({
+                ...prev,
+                firstName: updatedProfile.first_name,
+                lastName: updatedProfile.last_name,
+                laborProfile: updatedProfile
+            }));
+
+            closeProfileModal();
+        } catch (err) {
+            console.error('Error saving profile:', err);
+            console.error('Error details:', err.message, err.details, err.hint, err.code);
+            const errorMsg = err.message || err.error_description || 'Failed to save profile. Please try again.';
+            setError(`Error: ${errorMsg}`);
+        } finally {
+            setSavingProfile(false);
+        }
+    };
+
+    const handleAddProduct = async (e) => {
+        e.preventDefault();
+        setSavingProduct(true);
+        setError(null);
+
+        try {
+            // Save to database - only send fields that exist in schema
+            const savedProduct = await addArtisanProduct({
+                name: newProduct.name,
+                description: newProduct.description,
+                price: parseFloat(newProduct.price)
+            });
+
+            // Add to local state
+            const product = {
+                id: savedProduct.product_id,
+                name: savedProduct.name,
+                description: savedProduct.description,
+                price: savedProduct.listed_price,
+                sold: 0,
+                listed: 1,
+                status: 'active'
+            };
+
+            setMyProducts([...myProducts, product]);
+            setNewProduct({ name: '', description: '', price: '' });
+            closeSellModal();
+        } catch (err) {
+            console.error('Error adding product:', err);
+            const errorMsg = err.message || err.error_description || 'Failed to add product. Please try again.';
+            setError(`Error: ${errorMsg}`);
+        } finally {
+            setSavingProduct(false);
+        }
     };
 
     // Calculate stats
@@ -106,6 +251,17 @@ function Artisan() {
         return <div className="artisan-page"><div className="artisan-loading">Loading...</div></div>;
     }
 
+    if (error) {
+        return (
+            <div className="artisan-page">
+                <div className="artisan-error">
+                    <p>{error}</p>
+                    <button onClick={loadArtisanData}>Retry</button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="artisan-page">
             {/* Navbar */}
@@ -116,6 +272,7 @@ function Artisan() {
                     <a href="#" onClick={() => setActiveTab('buy')}>Buy Scrap</a>
                     <a href="#" onClick={() => setActiveTab('sell')}>Sell Products</a>
                     <a href="#" onClick={() => setActiveTab('inventory')}>Inventory</a>
+                    <a href="#" onClick={openProfileModal}>Profile</a>
                 </div>
                 <div className="auth-buttons">
                     <div className="user-avatar-circle" onClick={() => setShowLogout(!showLogout)}>
@@ -142,6 +299,20 @@ function Artisan() {
                             <p>🎨 Eco Artisans & Craftsperson</p>
                         </div>
                     </div>
+                    {/* Profile completion warning */}
+                    {(!profile?.laborProfile?.address || !profile?.laborProfile?.city) && (
+                        <div className="profile-warning" style={{ marginTop: '15px', padding: '12px', background: '#fff3e0', borderRadius: '8px', borderLeft: '4px solid #ff9800' }}>
+                            <p style={{ margin: 0, color: '#e65100', fontSize: '14px' }}>
+                                ⚠️ Please complete your profile to add products.
+                                <button 
+                                    onClick={openProfileModal}
+                                    style={{ marginLeft: '10px', padding: '6px 12px', background: '#ff9800', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}
+                                >
+                                    Complete Profile
+                                </button>
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 {/* Overview Tab */}
@@ -191,7 +362,7 @@ function Artisan() {
                                 <p>Purchase raw materials from verified scrap dealers</p>
                                 <button className="action-btn primary">Find Dealers</button>
                             </div>
-                            <div className="action-card sell-product-card" onClick={() => setShowSellModal(true)}>
+                            <div className="action-card sell-product-card" onClick={openSellModal}>
                                 <div className="action-icon">🎨</div>
                                 <h3>Sell Your Creation</h3>
                                 <p>List your upcycled products for eco-conscious consumers</p>
@@ -232,7 +403,7 @@ function Artisan() {
                     <div className="sell-products-section">
                         <div className="sell-header">
                             <h2>🎨 Your Listed Products</h2>
-                            <button className="add-product-btn" onClick={() => setShowSellModal(true)}>+ Add New Product</button>
+                            <button className="add-product-btn" onClick={openSellModal}>+ Add New Product</button>
                         </div>
 
                         <div className="products-table">
@@ -243,7 +414,6 @@ function Artisan() {
                                         <th>Price</th>
                                         <th>Listed</th>
                                         <th>Sold</th>
-                                        <th>Stock</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -252,13 +422,11 @@ function Artisan() {
                                     {myProducts.map(product => (
                                         <tr key={product.id} className={product.status}>
                                             <td>
-                                                <span className="product-icon">{product.image}</span>
                                                 {product.name}
                                             </td>
                                             <td>₹{product.price}</td>
                                             <td>{product.listed}</td>
                                             <td>{product.sold}</td>
-                                            <td>{product.stock}</td>
                                             <td><span className={`status-tag ${product.status}`}>{product.status}</span></td>
                                             <td>
                                                 <button className="edit-btn">Edit</button>
@@ -296,7 +464,6 @@ function Artisan() {
                             {myProducts.map(product => (
                                 <div key={product.id} className="performance-item">
                                     <div className="perf-info">
-                                        <span className="perf-icon">{product.image}</span>
                                         <div>
                                             <h4>{product.name}</h4>
                                             <p>{product.sold} / {product.listed} sold</p>
@@ -315,13 +482,18 @@ function Artisan() {
 
             {/* Sell Product Modal */}
             {showSellModal && (
-                <div className="modal-overlay" onClick={() => setShowSellModal(false)}>
+                <div className="modal-overlay" onClick={closeSellModal}>
                     <div className="sell-modal" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
                             <h2>🎨 Add New Product</h2>
-                            <button className="close-modal" onClick={() => setShowSellModal(false)}>×</button>
+                            <button className="close-modal" onClick={closeSellModal}>×</button>
                         </div>
                         <form onSubmit={handleAddProduct}>
+                            {error && (
+                                <div className="form-error-banner" style={{ background: '#fee2e2', color: '#dc2626', padding: '12px', marginBottom: '15px', borderRadius: '8px', fontSize: '14px' }}>
+                                    {error}
+                                </div>
+                            )}
                             <div className="form-group">
                                 <label>Product Name</label>
                                 <input
@@ -363,47 +535,107 @@ function Artisan() {
                                     />
                                 </div>
                             </div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Stock Quantity</label>
-                                    <input
-                                        type="number"
-                                        value={newProduct.stock}
-                                        onChange={e => setNewProduct({ ...newProduct, stock: e.target.value })}
-                                        placeholder="50"
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Eco Badge</label>
-                                    <input
-                                        type="text"
-                                        value={newProduct.ecoBadge}
-                                        onChange={e => setNewProduct({ ...newProduct, ecoBadge: e.target.value })}
-                                        placeholder="e.g., 100% Recycled"
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label>Product Icon</label>
-                                <div className="icon-selector">
-                                    {['📓', '🏺', '🪴', '📦', '💡', '🛋️', '🧺', '🎨', '👕', '🪥', '🌱', '✏️'].map(icon => (
-                                        <span
-                                            key={icon}
-                                            className={`icon-option ${newProduct.image === icon ? 'selected' : ''}`}
-                                            onClick={() => setNewProduct({ ...newProduct, image: icon })}
-                                        >
-                                            {icon}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                            <button type="submit" className="submit-product-btn">List Product for Sale</button>
+                            <button type="submit" className="submit-product-btn" disabled={savingProduct}>
+                                {savingProduct ? 'Saving...' : 'List Product for Sale'}
+                            </button>
                         </form>
                     </div>
                 </div>
             )}
-           
+
+            {/* Profile Modal */}
+            {showProfileModal && (
+                <div className="modal-overlay" onClick={closeProfileModal}>
+                    <div className="sell-modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>👤 Edit Profile</h2>
+                            <button className="close-modal" onClick={closeProfileModal}>×</button>
+                        </div>
+                        <form onSubmit={handleSaveProfile}>
+                            {error && (
+                                <div className="form-error-banner" style={{ background: '#fee2e2', color: '#dc2626', padding: '12px', marginBottom: '15px', borderRadius: '8px', fontSize: '14px' }}>
+                                    {error}
+                                </div>
+                            )}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>First Name *</label>
+                                    <input
+                                        type="text"
+                                        value={profileForm.firstName}
+                                        onChange={e => setProfileForm({ ...profileForm, firstName: e.target.value })}
+                                        placeholder="John"
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Last Name *</label>
+                                    <input
+                                        type="text"
+                                        value={profileForm.lastName}
+                                        onChange={e => setProfileForm({ ...profileForm, lastName: e.target.value })}
+                                        placeholder="Doe"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label>Address</label>
+                                <input
+                                    type="text"
+                                    value={profileForm.address}
+                                    onChange={e => setProfileForm({ ...profileForm, address: e.target.value })}
+                                    placeholder="123 Main Street"
+                                />
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>City *</label>
+                                    <input
+                                        type="text"
+                                        value={profileForm.city}
+                                        onChange={e => setProfileForm({ ...profileForm, city: e.target.value })}
+                                        placeholder="Mumbai"
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>State</label>
+                                    <input
+                                        type="text"
+                                        value={profileForm.state}
+                                        onChange={e => setProfileForm({ ...profileForm, state: e.target.value })}
+                                        placeholder="Maharashtra"
+                                    />
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>PIN Code</label>
+                                    <input
+                                        type="number"
+                                        value={profileForm.pinCode}
+                                        onChange={e => setProfileForm({ ...profileForm, pinCode: e.target.value })}
+                                        placeholder="400001"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Skills</label>
+                                    <input
+                                        type="text"
+                                        value={profileForm.skills}
+                                        onChange={e => setProfileForm({ ...profileForm, skills: e.target.value })}
+                                        placeholder="e.g., Woodworking, Painting"
+                                    />
+                                </div>
+                            </div>
+                            <button type="submit" className="submit-product-btn" disabled={savingProfile}>
+                                {savingProfile ? 'Saving...' : 'Save Profile'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
