@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './SharedNavbar.css';
 
 function Navbar2({ activeLink = null, badgeCount = 0, user = null }) {
@@ -29,23 +29,23 @@ function Navbar2({ activeLink = null, badgeCount = 0, user = null }) {
         <nav className="shared-nav">
             <span className="shared-nav__logo">&#9851; CycleWealth</span>
             <div className="shared-nav__links">
-                <a href="/scrapdealer" className={`shared-nav__link ${activeLink === 'home' ? 'shared-nav__link--active' : ''}`}>
+                <Link to="/scrapdealer" className={`shared-nav__link ${activeLink === 'home' ? 'shared-nav__link--active' : ''}`}>
                     Home
-                </a>
-                <a href="/scrapdealer" className={`shared-nav__link ${activeLink === 'transactions' ? 'shared-nav__link--active' : ''}`}>
+                </Link>
+                <Link to="/scrapdealer" className={`shared-nav__link ${activeLink === 'transactions' ? 'shared-nav__link--active' : ''}`}>
                     Transactions
-                </a>
-                <a href="/connections" className={`shared-nav__link ${activeLink === 'connections' ? 'shared-nav__link--active' : ''}`}>
+                </Link>
+                <Link to="/connections" className={`shared-nav__link ${activeLink === 'connections' ? 'shared-nav__link--active' : ''}`}>
                     Connections
                     {badgeCount > 0 && (
                         <span className="shared-nav__badge">{badgeCount}</span>
                     )}
-                </a>
+                </Link>
 
                 {isEnterpriseRegistered && (
-                    <a href="/companyorder" className={`shared-nav__link ${activeLink === 'companyorder' ? 'shared-nav__link--active' : ''}`}>
+                    <Link to="/companyorder" className={`shared-nav__link ${activeLink === 'companyorder' ? 'shared-nav__link--active' : ''}`}>
                         Order Scrap
-                    </a>
+                    </Link>
                 )}
             </div>
             <div className="shared-nav__actions">

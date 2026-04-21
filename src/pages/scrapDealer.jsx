@@ -2,6 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SharedNavbar from '../components/SharedNavbar';
 import supabaseClient from '../supabase-config';
+import {
+    Briefcase,
+    MapPin,
+    Recycle,
+    Factory,
+    BadgeCheck,
+    IndianRupee,
+    ArrowRight,
+    Building2,
+    User,
+    ExternalLink,
+    MapPinOff,
+    Landmark,
+    Navigation,
+    Home,
+    LocateFixed
+} from 'lucide-react';
 import './scrapDealer.css';
 
 function ScrapDealer() {
@@ -290,12 +307,27 @@ function ScrapDealer() {
                         <div className="profile-main-info">
                             <div>
                                 <h1 className="profile-name">{profile.firstName} {profile.lastName}</h1>
-                                <p className="profile-title">Founder & Proprietor â {profile.businessName}</p>
-                                <p className="profile-location">ð {profile.address}, {profile.city}, {profile.state}</p>
+                                <p className="profile-title">
+                                    <Briefcase size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                                    Founder & Proprietor - {profile.businessName}
+                                </p>
+                                <p className="profile-location">
+                                    <MapPin size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                                    {profile.address}, {profile.city}, {profile.state}
+                                </p>
                                 <div className="profile-badges">
-                                    <span className="badge badge-green">â Metal Recycler</span>
-                                    <span className="badge badge-blue">â Industrial Scrap</span>
-                                    <span className="badge badge-yellow">â Verified Dealer</span>
+                                    <span className="badge badge-green">
+                                        <Recycle size={12} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                                        Metal Recycler
+                                    </span>
+                                    <span className="badge badge-blue">
+                                        <Factory size={12} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                                        Industrial Scrap
+                                    </span>
+                                    <span className="badge badge-yellow">
+                                        <BadgeCheck size={12} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                                        Verified Dealer
+                                    </span>
                                 </div>
                             </div>
                             <div className="profile-actions">
@@ -351,7 +383,10 @@ function ScrapDealer() {
                                 <div className="stat-lbl">Experience</div>
                             </div>
                             <div className="stat-box">
-                                <div className="stat-num">â{profile.stats?.annualVolume || 0}Cr</div>
+                                <div className="stat-num" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
+                                    <IndianRupee size={18} />
+                                    {profile.stats?.annualVolume || 0}Cr
+                                </div>
                                 <div className="stat-lbl">Annual Volume</div>
                             </div>
                             <div className="stat-box">
@@ -484,7 +519,9 @@ function ScrapDealer() {
                             </div>
                         )}
 
-                        <button className="view-all-btn">View all connections â</button>
+                        <button className="view-all-btn">
+                            View all connections <ArrowRight size={14} style={{ marginLeft: '4px', verticalAlign: 'middle' }} />
+                        </button>
                     </div>
 
                     {/* Experience Section */}
@@ -494,22 +531,26 @@ function ScrapDealer() {
                             {profile.experience?.length > 0 ? (
                                 profile.experience.map((exp, index) => (
                                     <div key={index} className="experience-row">
-                                        <div className="exp-icon">â</div>
+                                        <div className="exp-icon">
+                                            <Building2 size={20} />
+                                        </div>
                                         <div className="exp-details">
                                             <p className="exp-title">{exp.title}</p>
-                                            <p className="exp-company">{exp.company} Â· {exp.period}</p>
+                                            <p className="exp-company">{exp.company} - {exp.period}</p>
                                             <p className="exp-description">{exp.description}</p>
                                         </div>
                                     </div>
                                 ))
                             ) : (
                                 <div className="experience-row">
-                                    <div className="exp-icon">â</div>
+                                    <div className="exp-icon">
+                                        <Building2 size={20} />
+                                    </div>
                                     <div className="exp-details">
                                         <p className="exp-title">Founder & Proprietor</p>
-                                        <p className="exp-company">{profile.businessName} Â· {profile.establishedYear || 'Present'} â present</p>
+                                        <p className="exp-company">{profile.businessName} - {profile.establishedYear || 'Present'} - present</p>
                                         <p className="exp-description">
-                                            Managing end-to-end scrap operations â sourcing, sorting, weighing, and reselling ferrous, non-ferrous, and e-waste materials.
+                                            Managing end-to-end scrap operations - sourcing, sorting, weighing, and reselling ferrous, non-ferrous, and e-waste materials.
                                         </p>
                                     </div>
                                 </div>
@@ -546,32 +587,46 @@ function ScrapDealer() {
                                 profile.recommendations.map((rec, index) => (
                                     <div key={index} className="recommendation">
                                         <p className="recommendation-text">"{rec.text}"</p>
-                                        <p className="recommendation-author">â {rec.author}</p>
+                                        <p className="recommendation-author">
+                                            <User size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                                            {rec.author}
+                                        </p>
                                     </div>
                                 ))
                             ) : (
                                 <>
                                     <div className="recommendation">
                                         <p className="recommendation-text">"Fair pricing and reliable service. Always on time with pickups."</p>
-                                        <p className="recommendation-author">â Happy Customer</p>
+                                        <p className="recommendation-author">
+                                            <User size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                                            Happy Customer
+                                        </p>
                                     </div>
                                     <div className="recommendation">
                                         <p className="recommendation-text">"Best source for quality scrap materials in the area."</p>
-                                        <p className="recommendation-author">â Regular Client</p>
+                                        <p className="recommendation-author">
+                                            <User size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                                            Regular Client
+                                        </p>
                                     </div>
                                 </>
                             )}
                         </div>
-                        <button className="view-all-btn">Write a recommendation â</button>
+                        <button className="view-all-btn">
+                            Write a recommendation <ArrowRight size={14} style={{ marginLeft: '4px', verticalAlign: 'middle' }} />
+                        </button>
                     </div>
 
                     {/* Business Address */}
                     <div className="card">
                         <div className="address-header">
-                            <p className="section-title">ð Business Address</p>
+                            <p className="section-title">
+                                <MapPin size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                                Business Address
+                            </p>
                             {!isEditing && (profile.address || profile.city) && (
                                 <button className="view-all-btn" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(`${profile.address}, ${profile.city}, ${profile.state}`)}`, '_blank')}>
-                                    View on Map â
+                                    View on Map <ExternalLink size={14} style={{ marginLeft: '4px', verticalAlign: 'middle' }} />
                                 </button>
                             )}
                         </div>
@@ -579,7 +634,7 @@ function ScrapDealer() {
                         {isEditing ? (
                             <div className="address-form">
                                 <div className="address-input-group">
-                                    <div className="input-icon">ð</div>
+                                    <div className="input-icon"><Home size={20} /></div>
                                     <input
                                         type="text"
                                         name="address"
@@ -591,7 +646,7 @@ function ScrapDealer() {
                                 </div>
                                 <div className="address-row">
                                     <div className="address-input-group">
-                                        <div className="input-icon">ð</div>
+                                        <div className="input-icon"><Building2 size={20} /></div>
                                         <input
                                             type="text"
                                             name="city"
@@ -602,7 +657,7 @@ function ScrapDealer() {
                                         />
                                     </div>
                                     <div className="address-input-group">
-                                        <div className="input-icon">ð</div>
+                                        <div className="input-icon"><Landmark size={20} /></div>
                                         <input
                                             type="text"
                                             name="state"
@@ -614,7 +669,7 @@ function ScrapDealer() {
                                     </div>
                                 </div>
                                 <div className="address-input-group">
-                                    <div className="input-icon">ð</div>
+                                    <div className="input-icon"><LocateFixed size={20} /></div>
                                     <input
                                         type="text"
                                         name="zipCode"
@@ -629,13 +684,13 @@ function ScrapDealer() {
                             <div className="address-display">
                                 {profile.address && (
                                     <div className="address-item">
-                                        <div className="address-icon">ð</div>
+                                        <div className="address-icon"><Home size={20} /></div>
                                         <p className="address-text">{profile.address}</p>
                                     </div>
                                 )}
                                 {(profile.city || profile.state || profile.zipCode) && (
                                     <div className="address-item">
-                                        <div className="address-icon">ð</div>
+                                        <div className="address-icon"><MapPin size={20} /></div>
                                         <p className="address-text">
                                             {[profile.city, profile.state, profile.zipCode].filter(Boolean).join(', ')}
                                         </p>
@@ -643,7 +698,7 @@ function ScrapDealer() {
                                 )}
                                 {!profile.address && !profile.city && !profile.state && !profile.zipCode && (
                                     <div className="address-empty">
-                                        <div className="empty-icon">ð</div>
+                                        <div className="empty-icon"><MapPinOff size={28} /></div>
                                         <p className="empty-text">No business address provided yet</p>
                                         <p className="empty-subtext">Add your address to help customers find you</p>
                                     </div>

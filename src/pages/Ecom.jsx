@@ -354,7 +354,12 @@ function Ecom() {
                                     <span>Total:</span>
                                     <span className="total-price">₹{getTotalPrice()}</span>
                                 </div>
-                                <button className="checkout-btn">Proceed to Checkout</button>
+                                <button 
+                                    className="checkout-btn"
+                                    onClick={() => navigate('/order')}
+                                >
+                                    Proceed to Checkout
+                                </button>
                             </div>
                         </>
                     )}
@@ -421,12 +426,20 @@ function Ecom() {
                                     </span>
                                 </div>
 
-                                <button
-                                    className="add-to-cart-btn"
-                                    onClick={() => addToCart(product)}
-                                >
-                                    🛒 Add to Cart
-                                </button>
+                                <div className="product-actions">
+                                    <button
+                                        className="add-to-cart-btn"
+                                        onClick={() => addToCart(product)}
+                                    >
+                                        🛒 Add to Cart
+                                    </button>
+                                    <button
+                                        className="order-now-btn"
+                                        onClick={() => navigate('/order')}
+                                    >
+                                        ⚡ Order Now
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}

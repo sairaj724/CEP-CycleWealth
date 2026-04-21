@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import supabaseClient from "../supabase-config";
 
 function HomeNavbar({ user: propUser }) {
@@ -37,11 +37,11 @@ function HomeNavbar({ user: propUser }) {
             <h2 className="logo">♻️ CycleWealth</h2>
 
             <div className="nav-links">
-                <a href="/">Home</a>
-                <a href="/about">About Us</a>
-                <a href="/scrap-prices">Scrap Prices</a>
-                <a href="/segregation-guide">Segregation Guide</a>
-                <a href="/contact">Contact</a>
+                <Link to="/">Home</Link>
+                <Link to="/about">About Us</Link>
+                <Link to="/scrap-prices">Scrap Prices</Link>
+                <Link to="/segregation-guide">Segregation Guide</Link>
+                <Link to="/contact">Contact</Link>
             </div>
 
             <div className="auth-buttons">
@@ -52,8 +52,8 @@ function HomeNavbar({ user: propUser }) {
                 ) : (
                     !loading && (
                         <>
-                            <a href="/login"><button className="login">Login</button></a>
-                            <a href="/signup"><button className="sign-up">Sign Up</button></a>
+                            <Link to="/login"><button className="login">Login</button></Link>
+                            <Link to="/signup"><button className="sign-up">Sign Up</button></Link>
                         </>
                     )
                 )}

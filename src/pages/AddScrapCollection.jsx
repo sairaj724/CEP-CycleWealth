@@ -121,7 +121,7 @@ function AddScrapCollection() {
     };
 
     const handleCancel = () => {
-        navigate('/scrap-dealer');
+        navigate('/scrapDealer');
     };
 
     const getSelectedCategory = () => {

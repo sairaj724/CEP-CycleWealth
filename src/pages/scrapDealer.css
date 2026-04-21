@@ -255,7 +255,21 @@
     padding: 1.25rem;
     margin-bottom: 12px;
     width: 100%;
+    max-width: 680px;
     box-sizing: border-box;
+}
+
+/* Profile Content - Consistent Card Layout */
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.profile-content > * {
+    width: 100%;
+    max-width: 680px;
 }
 
 /* Section Title */
@@ -390,6 +404,12 @@
     font-size: 18px;
     flex-shrink: 0;
     background: var(--color-background-secondary);
+    color: var(--color-text-secondary);
+}
+
+.exp-icon svg {
+    width: 20px;
+    height: 20px;
 }
 
 .exp-details {
@@ -584,7 +604,7 @@
 }
 
 .checkbox-label input[type="checkbox"]:checked + .checkmark::after {
-    content: 'â';
+    content: '✓';
     position: absolute;
     top: 50%;
     left: 50%;
@@ -711,6 +731,11 @@
     color: #0f9d58;
 }
 
+.input-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
 .address-input {
     flex: 1;
     padding-left: 16px !important;
@@ -763,6 +788,11 @@
     flex-shrink: 0;
 }
 
+.address-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
 .address-text {
     font-size: 15px;
     color: var(--color-text-primary);
@@ -793,6 +823,11 @@
     font-size: 28px;
     color: #0f9d58;
     flex-shrink: 0;
+}
+
+.empty-icon svg {
+    width: 28px;
+    height: 28px;
 }
 
 .empty-text {

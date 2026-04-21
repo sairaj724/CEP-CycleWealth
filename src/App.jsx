@@ -12,12 +12,16 @@ import Ecom from "./pages/Ecom";
 import Artisan from "./pages/Artisan";
 import Enterprise from "./pages/Enterprise";
 import CompanyOrder from "./pages/CompanyOrder";
+import Order from "./pages/Order";
 import About from "./pages/About";
 import ScrapPrices from "./pages/ScrapPrices";
 import SegregationGuide from "./pages/SegregationGuide";
 import Contact from "./pages/Contact";
 
+console.log('App.jsx imports loaded')
+
 function App() {
+  console.log('App component rendering')
   return (
     <BrowserRouter>
       <Routes>
@@ -34,6 +38,7 @@ function App() {
         <Route path="/artisan" element={<Artisan />} />
         <Route path="/enterprise" element={<Enterprise />} />
         <Route path="/companyorder" element={<CompanyOrder />} />
+        <Route path="/order" element={<Order />} />
         <Route path="/about" element={<About />} />
         <Route path="/scrap-prices" element={<ScrapPrices />} />
         <Route path="/segregation-guide" element={<SegregationGuide />} />

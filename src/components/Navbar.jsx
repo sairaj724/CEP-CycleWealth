@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import supabaseClient from "../supabase-config";
 // import "./Navbar.css";
 
@@ -38,9 +38,9 @@ function Navbar() {
             <h2 className="logo">♻️ CycleWealth</h2>
 
             <div className="nav-links">
-                <a href="/">Home</a>
-                <a href="#">Shop</a>
-                <a href="#">Find Dealers</a>
+                <Link to="/">Home</Link>
+                <Link to="/ecom">Shop</Link>
+                <Link to="/consumer">Find Dealers</Link>
             </div>
 
             <div className="auth-buttons">
@@ -51,8 +51,8 @@ function Navbar() {
                 ) : (
                     !loading && (
                         <>
-                            <a href="/login"><button className="login">Login</button></a>
-                            <a href="/signup"><button className="sign-up">Sign Up</button></a>
+                            <Link to="/login"><button className="login">Login</button></Link>
+                            <Link to="/signup"><button className="sign-up">Sign Up</button></Link>
                         </>
                     )
                 )}
