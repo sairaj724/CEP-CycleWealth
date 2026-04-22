@@ -13,6 +13,7 @@ import Artisan from "./pages/Artisan";
 import Enterprise from "./pages/Enterprise";
 import CompanyOrder from "./pages/CompanyOrder";
 import Order from "./pages/Order";
+import MyOrders from "./pages/MyOrders";
 import About from "./pages/About";
 import ScrapPrices from "./pages/ScrapPrices";
 import SegregationGuide from "./pages/SegregationGuide";
@@ -39,6 +40,7 @@ function App() {
         <Route path="/enterprise" element={<Enterprise />} />
         <Route path="/companyorder" element={<CompanyOrder />} />
         <Route path="/order" element={<Order />} />
+        <Route path="/my-orders" element={<MyOrders />} />
         <Route path="/about" element={<About />} />
         <Route path="/scrap-prices" element={<ScrapPrices />} />
         <Route path="/segregation-guide" element={<SegregationGuide />} />

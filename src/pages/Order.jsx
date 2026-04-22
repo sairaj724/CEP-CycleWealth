@@ -4,7 +4,10 @@ import SharedNavbar from '../components/SharedNavbar';
 import {
     getAvailableProducts,
     getProductById,
-    createOrder
+    createOrder,
+    addProductToCart,
+    removeProductFromCart,
+    restoreAbandonedCartItems
 } from '../services/orderService';
 import {
     ShoppingCart,
@@ -31,6 +34,13 @@ function Order() {
     const [products, setProducts] = useState([]);
     const [cart, setCart] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    // Store cart in sessionStorage for cleanup on page leave
+    useEffect(() => {
+        if (cart.length > 0) {
+            sessionStorage.setItem('orderCart', JSON.stringify(cart));
+        }
+    }, [cart]);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -49,30 +59,46 @@ function Order() {
     const [paymentMethod, setPaymentMethod] = useState('COD');
 
     useEffect(() => {
-        const sessionUser = sessionStorage.getItem('user');
-        if (!sessionUser) {
-            navigate('/login');
-            return;
-        }
-        const user = JSON.parse(sessionUser);
-        setCurrentUser(user);
-        
-        // Pre-fill user info if available
-        setDeliveryAddress(prev => ({
-            ...prev,
-            fullName: user["First name"] + " " + (user["Last_Name"] || ''),
-            phone: user.phone || ''
-        }));
+        const init = async () => {
+            const sessionUser = sessionStorage.getItem('user');
+            if (!sessionUser) {
+                navigate('/login');
+                return;
+            }
+            const user = JSON.parse(sessionUser);
+            setCurrentUser(user);
 
-        // Check for product ID in URL query params
-        const params = new URLSearchParams(location.search);
-        const productId = params.get('product');
-        
-        if (productId) {
-            loadSingleProduct(productId);
-        } else {
-            loadProducts();
-        }
+            // Pre-fill user info if available
+            setDeliveryAddress(prev => ({
+                ...prev,
+                fullName: user["First name"] + " " + (user["Last_Name"] || ''),
+                phone: user.phone || ''
+            }));
+
+            // Restore any abandoned cart items from previous sessions
+            await restoreAbandonedCartItems();
+
+            // Check for product ID in URL query params
+            const params = new URLSearchParams(location.search);
+            const productId = params.get('product');
+
+            if (productId) {
+                loadSingleProduct(productId);
+            } else {
+                loadProducts();
+            }
+        };
+
+        init();
+
+        // Cleanup: restore cart items to Available when leaving page without ordering
+        return () => {
+            const currentCart = JSON.parse(sessionStorage.getItem('orderCart') || '[]');
+            currentCart.forEach(item => {
+                removeProductFromCart(item.product_id);
+            });
+            sessionStorage.removeItem('orderCart');
+        };
     }, [navigate, location.search]);
 
     const loadProducts = async () => {
@@ -107,15 +133,24 @@ function Order() {
         }
     };
 
-    const addToCart = (product) => {
+    const addToCart = async (product) => {
         if (cart.length >= 3) {
             setError('Maximum 3 items allowed per order');
             return;
         }
-        
+
         const existingItem = cart.find(item => item.product_id === product.product_id);
         if (existingItem) {
             setError('This product is already in your cart');
+            return;
+        }
+
+        // Update product status to 'incart' in database
+        const success = await addProductToCart(product.product_id);
+        if (!success) {
+            setError('This product is no longer available');
+            // Refresh products to remove unavailable item from list
+            loadProducts();
             return;
         }
 
@@ -131,7 +166,10 @@ function Order() {
         setError('');
     };
 
-    const removeFromCart = (productId) => {
+    const removeFromCart = async (productId) => {
+        // Update product status back to 'Available' in database
+        await removeProductFromCart(productId);
+
         setCart(cart.filter(item => item.product_id !== productId));
     };
 
@@ -201,6 +239,7 @@ function Order() {
         setError('');
 
         try {
+            console.log('Placing order with deliveryAddress:', deliveryAddress);
             const orderData = {
                 items: cart.map(item => ({
                     product_id: item.product_id,
@@ -209,10 +248,12 @@ function Order() {
                 deliveryAddress,
                 paymentMethod
             };
+            console.log('Order data being sent:', orderData);
 
             const result = await createOrder(orderData);
             setSuccess('Order placed successfully! Order ID: ' + result.order.order_id);
             setCart([]);
+            sessionStorage.removeItem('orderCart');
             setCurrentStep(1);
             
             // Redirect to order confirmation after 2 seconds

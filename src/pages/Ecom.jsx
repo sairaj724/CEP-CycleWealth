@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Ecom.css';
 import supabaseClient from '../supabase-config';
+import { getAvailableProducts, addProductToCart, removeProductFromCart } from '../services/orderService';
 
 function Ecom() {
     const navigate = useNavigate();
@@ -12,180 +13,46 @@ function Ecom() {
     const [cart, setCart] = useState([]);
     const [showCart, setShowCart] = useState(false);
     const [showLogout, setShowLogout] = useState(false);
+    const [products, setProducts] = useState([]);
 
-    // Mock products data (frontend only as requested)
-    const [products] = useState([
-        {
-            id: 1,
-            name: "Recycled Paper Notebook",
-            description: "Eco-friendly notebook made from 100% recycled paper. 200 pages, spiral bound.",
-            price: 149,
-            originalPrice: 199,
-            category: "Stationery",
-            image: "📓",
-            rating: 4.5,
-            reviews: 89,
-            stock: 150,
-            ecoBadge: "Saves 2 trees",
-            seller: "GreenPaper Co."
-        },
-        {
-            id: 2,
-            name: "Upcycled Glass Vase",
-            description: "Beautiful hand-crafted vase made from recycled glass bottles. Unique design.",
-            price: 499,
-            originalPrice: 699,
-            category: "Home Decor",
-            image: "🏺",
-            rating: 4.8,
-            reviews: 124,
-            stock: 45,
-            ecoBadge: "100% Recycled Glass",
-            seller: "Artisan Crafts"
-        },
-        {
-            id: 3,
-            name: "Recycled Plastic Planters (Set of 3)",
-            description: "Durable planters made from recycled plastic. Perfect for home gardening.",
-            price: 299,
-            originalPrice: 399,
-            category: "Garden",
-            image: "🪴",
-            rating: 4.3,
-            reviews: 67,
-            stock: 200,
-            ecoBadge: "50 bottles recycled",
-            seller: "EcoGarden India"
-        },
-        {
-            id: 4,
-            name: "Handmade Recycled Paper Bags",
-            description: "Pack of 20 sturdy paper bags made from newspaper and scrap paper.",
-            price: 99,
-            originalPrice: 149,
-            category: "Packaging",
-            image: "🛍️",
-            rating: 4.6,
-            reviews: 234,
-            stock: 500,
-            ecoBadge: "Zero plastic",
-            seller: "PaperCraft Mumbai"
-        },
-        {
-            id: 5,
-            name: "Recycled Metal Wall Art",
-            description: "Intricate wall decoration crafted from scrap metal. Contemporary design.",
-            price: 1299,
-            originalPrice: 1799,
-            category: "Home Decor",
-            image: "🎨",
-            rating: 4.9,
-            reviews: 45,
-            stock: 20,
-            ecoBadge: "Metal scrap reused",
-            seller: "MetalArt Studio"
-        },
-        {
-            id: 6,
-            name: "Eco-Friendly Jute Bag",
-            description: "Stylable and durable jute shopping bag. Biodegradable and sustainable.",
-            price: 199,
-            originalPrice: 249,
-            category: "Accessories",
-            image: "👜",
-            rating: 4.4,
-            reviews: 156,
-            stock: 300,
-            ecoBadge: "100% Biodegradable",
-            seller: "JuteCraft India"
-        },
-        {
-            id: 7,
-            name: "Recycled Cotton T-Shirt",
-            description: "Comfortable t-shirt made from recycled cotton fabric. Unisex sizing.",
-            price: 399,
-            originalPrice: 599,
-            category: "Clothing",
-            image: "👕",
-            rating: 4.7,
-            reviews: 312,
-            stock: 100,
-            ecoBadge: "Saves 2700L water",
-            seller: "ReThread Fashion"
-        },
-        {
-            id: 8,
-            name: "Bamboo Toothbrush (Pack of 4)",
-            description: "Eco-friendly bamboo toothbrush with charcoal bristles. Plastic-free packaging.",
-            price: 249,
-            originalPrice: 349,
-            category: "Personal Care",
-            image: "🪥",
-            rating: 4.5,
-            reviews: 189,
-            stock: 250,
-            ecoBadge: "Plastic-free",
-            seller: "BambooLife"
-        },
-        {
-            id: 9,
-            name: "Recycled Tire Planter",
-            description: "Creative planter made from upcycled tires. Weather resistant.",
-            price: 599,
-            originalPrice: 799,
-            category: "Garden",
-            image: "🌱",
-            rating: 4.2,
-            reviews: 78,
-            stock: 35,
-            ecoBadge: "1 tire upcycled",
-            seller: "TireCraft Designs"
-        },
-        {
-            id: 10,
-            name: "Newspaper Pencils (Box of 10)",
-            description: "HB pencils made from rolled newspaper with plantable seeds on top.",
-            price: 129,
-            originalPrice: 179,
-            category: "Stationery",
-            image: "✏️",
-            rating: 4.8,
-            reviews: 267,
-            stock: 400,
-            ecoBadge: "Plantable seeds included",
-            seller: "GreenWrite"
-        },
-        {
-            id: 11,
-            name: "Recycled Plastic Chair",
-            description: "Modern outdoor chair made from 100% recycled plastic. UV resistant.",
-            price: 1899,
-            originalPrice: 2499,
-            category: "Furniture",
-            image: "🪑",
-            rating: 4.6,
-            reviews: 56,
-            stock: 25,
-            ecoBadge: "200 bottles recycled",
-            seller: "PlasticRenew"
-        },
-        {
-            id: 12,
-            name: "Coconut Shell Bowls (Set of 4)",
-            description: "Natural coconut shell bowls polished with coconut oil. Food safe.",
-            price: 449,
-            originalPrice: 599,
-            category: "Kitchen",
-            image: "🥥",
-            rating: 4.9,
-            reviews: 145,
-            stock: 80,
-            ecoBadge: "Zero waste product",
-            seller: "CocoCraft"
-        }
-    ]);
-
+    // Categories from scrap_categories or default
     const categories = ['All', 'Stationery', 'Home Decor', 'Garden', 'Packaging', 'Accessories', 'Clothing', 'Personal Care', 'Furniture', 'Kitchen'];
+
+    // Load products from database
+    const loadProducts = async () => {
+        try {
+            console.log('Fetching products...');
+            const data = await getAvailableProducts();
+            console.log('Raw data from DB:', data);
+            
+            if (!data || data.length === 0) {
+                console.warn('No products found in database');
+                setProducts([]);
+                return;
+            }
+            
+            // Map database products to frontend format
+            const mappedProducts = data.map((product, index) => ({
+                id: product.product_id,
+                name: product.name,
+                description: product.description || 'Upcycled eco-friendly product',
+                price: parseFloat(product.listed_price) || 0,
+                originalPrice: Math.round((parseFloat(product.listed_price) || 0) * 1.3),
+                category: categories[index % categories.length] || 'Home Decor',
+                image: ['📓', '🏺', '🪴', '🛍️', '🎨', '👜', '👕', '🪥', '🌱', '✏️', '🪑', '🥥'][index % 12],
+                rating: 4.0 + Math.random() * 1.0,
+                reviews: Math.floor(Math.random() * 300) + 50,
+                stock: 1,
+                ecoBadge: 'Upcycled Product',
+                seller: 'Eco Artisan'
+            }));
+            console.log('Mapped products:', mappedProducts);
+            setProducts(mappedProducts);
+        } catch (err) {
+            console.error('Error loading products:', err);
+            setProducts([]);
+        }
+    };
 
     useEffect(() => {
         const sessionUser = sessionStorage.getItem('user');
@@ -201,8 +68,24 @@ function Ecom() {
             email: user.email_address,
             role: user.role || 'consumer'
         });
+
+        loadProducts();
         setLoading(false);
+
+        // Cleanup: restore cart items to Available when leaving page
+        return () => {
+            cart.forEach(item => {
+                removeProductFromCart(item.id);
+            });
+        };
     }, [navigate]);
+
+    // Store cart in sessionStorage for cleanup tracking
+    useEffect(() => {
+        if (cart.length > 0) {
+            sessionStorage.setItem('ecomCart', JSON.stringify(cart));
+        }
+    }, [cart]);
 
     const handleLogout = async () => {
         await supabaseClient.auth.signOut();
@@ -210,7 +93,15 @@ function Ecom() {
         navigate('/login');
     };
 
-    const addToCart = (product) => {
+    const addToCart = async (product) => {
+        // Update database status to 'incart'
+        const success = await addProductToCart(product.id);
+        if (!success) {
+            alert('This product is no longer available');
+            loadProducts();
+            return;
+        }
+
         setCart(prev => {
             const existing = prev.find(item => item.id === product.id);
             if (existing) {
@@ -224,7 +115,10 @@ function Ecom() {
         });
     };
 
-    const removeFromCart = (productId) => {
+    const removeFromCart = async (productId) => {
+        // Restore product status to 'Available' in database
+        await removeProductFromCart(productId);
+        
         setCart(prev => prev.filter(item => item.id !== productId));
     };
 
