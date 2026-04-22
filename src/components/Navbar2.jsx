@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import NotificationDropdown from './NotificationDropdown';
 import './SharedNavbar.css';
 
 function Navbar2({ activeLink = null, badgeCount = 0, user = null }) {
@@ -50,9 +51,12 @@ function Navbar2({ activeLink = null, badgeCount = 0, user = null }) {
             </div>
             <div className="shared-nav__actions">
                 {user ? (
-                    <button className="shared-nav__btn shared-nav__btn--danger" onClick={handleLogout}>
-                        Sign Out
-                    </button>
+                    <>
+                        <NotificationDropdown user={user} />
+                        <button className="shared-nav__btn shared-nav__btn--danger" onClick={handleLogout}>
+                            Sign Out
+                        </button>
+                    </>
                 ) : (
                     <>
                         <button className="shared-nav__btn shared-nav__btn--ghost" onClick={handleLogin}>

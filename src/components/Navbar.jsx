@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import supabaseClient from "../supabase-config";
+import NotificationDropdown from "./NotificationDropdown";
 // import "./Navbar.css";
 
 function Navbar() {
@@ -45,9 +46,12 @@ function Navbar() {
 
             <div className="auth-buttons">
                 {!loading && user ? (
-                    <button className="sign-up" onClick={handleLogout}>
-                        Sign Out
-                    </button>
+                    <>
+                        <NotificationDropdown user={user} />
+                        <button className="sign-up" onClick={handleLogout}>
+                            Sign Out
+                        </button>
+                    </>
                 ) : (
                     !loading && (
                         <>
