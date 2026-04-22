@@ -284,7 +284,7 @@ function Consumer() {
                 <h2 className="logo">♻️ CycleWealth</h2>
                 <div className="nav-links">
 
-                    <a href="/Consumers">Home</a>
+                    <a href="/Consumer">Home</a>
                     <a href="#" onClick={() => setActiveTab('overview')}>Dashboard</a>
 
                     <a href="#" onClick={() => setActiveTab('dealers')}>Scrap Dealers</a>

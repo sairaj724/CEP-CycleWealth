@@ -40,12 +40,14 @@ body {
 .login {
   border: 2px solid green;
   background-color: white;
+  cursor: pointer;
 }
 
 .sign-up {
   background-color: green;
   color: white;
   border: none;
+  cursor: pointer;
 }
 
 /* ------------------ Sign Up and Login Page ------------------*/
