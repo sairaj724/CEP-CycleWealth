@@ -274,3 +274,165 @@ export const getNotificationColor = (type) => {
             return '#6b7280';
     }
 };
+
+/**
+ * Send a notification to a user
+ * @param {string} userId - The recipient user ID
+ * @param {string} message - The notification message
+ * @param {string} type - Notification type: 'connection', 'inventory', 'system'
+ * @param {Object} data - Additional data (optional)
+ * @returns {Promise<{success: boolean, error: Object}>}
+ */
+export const sendNotification = async (userId, message, type = 'system', data = {}) => {
+    try {
+        const { error } = await supabaseClient
+            .from('notifications')
+            .insert([{
+                user_id: userId,
+                message: message,
+                type: type,
+                is_read: false,
+                data: data
+            }]);
+
+        if (error) throw error;
+
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error sending notification:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Send connection request notification
+ * @param {string} receiverId - The user receiving the connection request
+ * @param {string} requesterName - Name of the user sending the request
+ * @param {string} requesterRole - Role of the requester
+ * @returns {Promise<{success: boolean, error: Object}>}
+ */
+export const sendConnectionRequestNotification = async (receiverId, requesterName, requesterRole) => {
+    const message = `${requesterName} (${requesterRole}) sent you a connection request`;
+    return sendNotification(receiverId, message, 'connection', {
+        action: 'connection_request',
+        requesterName,
+        requesterRole
+    });
+};
+
+/**
+ * Send connection accepted notification
+ * @param {string} requesterId - The user who sent the original request
+ * @param {string} receiverName - Name of the user who accepted
+ * @param {string} receiverRole - Role of the receiver
+ * @returns {Promise<{success: boolean, error: Object}>}
+ */
+export const sendConnectionAcceptedNotification = async (requesterId, receiverName, receiverRole) => {
+    const message = `${receiverName} (${receiverRole}) accepted your connection request`;
+    return sendNotification(requesterId, message, 'connection', {
+        action: 'connection_accepted',
+        receiverName,
+        receiverRole
+    });
+};
+
+/**
+ * Send connection rejected notification
+ * @param {string} requesterId - The user who sent the original request
+ * @param {string} receiverName - Name of the user who rejected
+ * @param {string} receiverRole - Role of the receiver
+ * @returns {Promise<{success: boolean, error: Object}>}
+ */
+export const sendConnectionRejectedNotification = async (requesterId, receiverName, receiverRole) => {
+    const message = `${receiverName} (${receiverRole}) declined your connection request`;
+    return sendNotification(requesterId, message, 'connection', {
+        action: 'connection_rejected',
+        receiverName,
+        receiverRole
+    });
+};
+
+/**
+ * Send scrap inventory notification to all connected users
+ * @param {string} scrapDealerId - The scrap dealer who added inventory
+ * @param {string} dealerName - Name of the scrap dealer
+ * @param {Object} scrapData - The scrap item data
+ * @returns {Promise<{success: boolean, error: Object}>}
+ */
+export const sendScrapInventoryNotification = async (scrapDealerId, dealerName, scrapData) => {
+    try {
+        // Get all accepted connections for this scrap dealer
+        const { data: connections, error: connError } = await supabaseClient
+            .from('connections')
+            .select('requester_id, receiver_id')
+            .or(`requester_id.eq.${scrapDealerId},receiver_id.eq.${scrapDealerId}`)
+            .eq('status', 'accepted');
+
+        if (connError) throw connError;
+
+        if (!connections || connections.length === 0) {
+            return { success: true, error: null, sent: 0 };
+        }
+
+        // Get connected user IDs (the other party in each connection)
+        const connectedUserIds = connections.map(conn =>
+            conn.requester_id === scrapDealerId ? conn.receiver_id : conn.requester_id
+        );
+
+        // Create notification message
+        const materialType = scrapData.material_type || scrapData.category || 'Scrap';
+        const quantity = scrapData.quantity || scrapData.amount || 'some';
+        const message = `${dealerName} added new ${materialType} inventory: ${quantity} available`;
+
+        // Send notifications to all connected users
+        const notifications = connectedUserIds.map(userId => ({
+            user_id: userId,
+            message: message,
+            type: 'inventory',
+            is_read: false,
+            data: {
+                action: 'new_scrap_inventory',
+                dealerId: scrapDealerId,
+                dealerName: dealerName,
+                scrapData: scrapData
+            }
+        }));
+
+        const { error } = await supabaseClient
+            .from('notifications')
+            .insert(notifications);
+
+        if (error) throw error;
+
+        return { success: true, error: null, sent: connectedUserIds.length };
+    } catch (error) {
+        console.error('Error sending scrap inventory notifications:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Get connected users for a given user ID
+ * @param {string} userId - The user ID
+ * @returns {Promise<{data: Array, error: Object}>}
+ */
+export const getConnectedUsers = async (userId) => {
+    try {
+        const { data, error } = await supabaseClient
+            .from('connections')
+            .select('requester_id, receiver_id')
+            .or(`requester_id.eq.${userId},receiver_id.eq.${userId}`)
+            .eq('status', 'accepted');
+
+        if (error) throw error;
+
+        const connectedIds = data.map(conn =>
+            conn.requester_id === userId ? conn.receiver_id : conn.requester_id
+        );
+
+        return { data: connectedIds, error: null };
+    } catch (error) {
+        console.error('Error getting connected users:', error);
+        return { data: [], error: error.message };
+    }
+};

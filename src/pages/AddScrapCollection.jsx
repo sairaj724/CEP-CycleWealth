@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './AddScrapCollection.css';
 import SharedNavbar from '../components/SharedNavbar';
 import supabaseClient from '../supabase-config';
+import { sendScrapInventoryNotification } from '../services/notificationService';
 
 const STATUS_OPTIONS = [
     { value: 'collected', label: 'Collected', color: '#4CAF50' },
@@ -226,6 +227,35 @@ function AddScrapCollection() {
             }
 
             console.log('Inventory inserted successfully with ID:', inventoryId);
+
+            // STEP 4: Send notifications to all connected users
+            try {
+                const dealerName = `${currentUser['First name'] || ''} ${currentUser['Last_Name'] || ''}`.trim() || 'Scrap Dealer';
+                const scrapData = {
+                    material_type: selectedCategory.scrap_type,
+                    category: selectedCategory.scrap_type,
+                    quantity: formData.quantity,
+                    weight: formData.weight,
+                    status: formData.status,
+                    description: formData.description || selectedCategory.defaultDescription
+                };
+
+                const notificationResult = await sendScrapInventoryNotification(
+                    currentUser.user_id,
+                    dealerName,
+                    scrapData
+                );
+
+                if (notificationResult.success) {
+                    console.log(`Scrap inventory notifications sent to ${notificationResult.sent || 0} connected users`);
+                } else {
+                    console.error('Failed to send scrap inventory notifications:', notificationResult.error);
+                }
+            } catch (notifError) {
+                console.error('Error sending scrap inventory notifications:', notifError);
+                // Don't block the success message for notification errors
+            }
+
             setMessage({ type: 'success', text: 'Scrap collection added successfully!' });
             setFormData({
                 category_id: '',

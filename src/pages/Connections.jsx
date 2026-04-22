@@ -4,6 +4,11 @@ import supabaseClient from '../supabase-config';
 import SharedNavbar from '../components/SharedNavbar';
 import './Connections.css';
 import Navbar2 from '../components/Navbar2';
+import {
+    sendConnectionRequestNotification,
+    sendConnectionAcceptedNotification,
+    sendConnectionRejectedNotification
+} from '../services/notificationService';
 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
     if (!lat1 || !lon1 || !lat2 || !lon2) return Infinity;
@@ -166,6 +171,15 @@ function Connections() {
             if (error) {
                 setError(error.code === '23505' ? 'Request already sent.' : error.message);
             } else {
+                // Send notification to the target user
+                const targetUser = getUserById(targetUserId);
+                if (targetUser) {
+                    await sendConnectionRequestNotification(
+                        targetUserId,
+                        `${currentUser['First name']} ${currentUser['Last_Name']}`,
+                        currentUser.role
+                    );
+                }
                 await fetchAllData(currentUser);
             }
         } catch (e) {
@@ -178,12 +192,34 @@ function Connections() {
     const handleConnectionResponse = async (connectionId, status) => {
         setActionLoading(connectionId);
         try {
+            // Get the connection details first
+            const connection = connections.find(c => c.connection_id === connectionId);
             const { error } = await supabaseClient
                 .from('connections')
                 .update({ status })
                 .eq('connection_id', connectionId);
-            if (error) setError(error.message);
-            else await fetchAllData(currentUser);
+            if (error) {
+                setError(error.message);
+            } else {
+                // Send notification to the requester about the response
+                if (connection) {
+                    const requesterId = connection.requester_id;
+                    if (status === 'accepted') {
+                        await sendConnectionAcceptedNotification(
+                            requesterId,
+                            `${currentUser['First name']} ${currentUser['Last_Name']}`,
+                            currentUser.role
+                        );
+                    } else if (status === 'rejected') {
+                        await sendConnectionRejectedNotification(
+                            requesterId,
+                            `${currentUser['First name']} ${currentUser['Last_Name']}`,
+                            currentUser.role
+                        );
+                    }
+                }
+                await fetchAllData(currentUser);
+            }
         } catch (e) {
             setError(e.message);
         } finally {

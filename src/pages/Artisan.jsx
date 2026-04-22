@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Artisan.css';
 import supabaseClient from '../supabase-config';
-import Navbar from '../components/Navbar';
+// import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import NotificationDropdown from '../components/NotificationDropdown';
 import {
     getSkilledLaborProfile,
     createOrGetSkilledLaborProfile,
@@ -317,6 +318,7 @@ function Artisan() {
                     <a href="#" onClick={openProfileModal}>Profile</a>
                 </div>
                 <div className="auth-buttons">
+                    <NotificationDropdown user={profile} />
                     <div className="user-avatar-circle" onClick={() => setShowLogout(!showLogout)}>
                         {profile?.firstName?.charAt(0)?.toUpperCase()}{profile?.lastName?.charAt(0)?.toUpperCase()}
                     </div>
