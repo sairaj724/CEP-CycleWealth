@@ -52,7 +52,7 @@ function ViewScrapInventory() {
                     weight,
                     status,
                     last_updated,
-                    scrap_categories (category_id, category_name, description, base_price_per_kg)
+                    scrap_categories (category_id, scrap_type, description, quantity)
                 `)
                 .eq('owner_id', userId)
                 .order('last_updated', { ascending: false });
@@ -72,7 +72,7 @@ function ViewScrapInventory() {
             const { data, error } = await supabaseClient
                 .from('scrap_categories')
                 .select('*')
-                .order('category_name', { ascending: true });
+                .order('scrap_type', { ascending: true });
 
             if (error) throw error;
             setCategories(data || []);
@@ -136,7 +136,7 @@ function ViewScrapInventory() {
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             filtered = filtered.filter(item =>
-                item.scrap_categories?.category_name?.toLowerCase().includes(term) ||
+                item.scrap_categories?.scrap_type?.toLowerCase().includes(term) ||
                 item.status.toLowerCase().includes(term)
             );
         }
@@ -266,7 +266,7 @@ function ViewScrapInventory() {
                                         <option value="all">All Categories</option>
                                         {categories.map(cat => (
                                             <option key={cat.category_id} value={cat.category_id}>
-                                                {cat.category_name}
+                                                {cat.scrap_type}
                                             </option>
                                         ))}
                                     </select>
@@ -320,7 +320,7 @@ function ViewScrapInventory() {
 
                                                 <div className="inventory-body">
                                                     <h3 className="material-name">
-                                                        {item.scrap_categories?.category_name || 'Unknown Material'}
+                                                        {item.scrap_categories?.scrap_type || 'Unknown Material'}
                                                     </h3>
                                                     <p className="material-description">
                                                         {item.scrap_categories?.description || 'No description available'}
@@ -384,7 +384,7 @@ function ViewScrapInventory() {
                                     <p>
                                         Showing {filteredInventory.length} of {inventory.length} items
                                         {filterStatus !== 'all' && ` • Status: ${STATUS_CONFIG[filterStatus]?.label || filterStatus}`}
-                                        {filterCategory !== 'all' && ` • Category: ${categories.find(c => c.category_id === filterCategory)?.category_name}`}
+                                        {filterCategory !== 'all' && ` • Category: ${categories.find(c => c.category_id === filterCategory)?.scrap_type}`}
                                     </p>
                                 </div>
                             )}

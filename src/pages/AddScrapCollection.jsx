@@ -12,16 +12,17 @@ const STATUS_OPTIONS = [
 ];
 
 // Default scrap categories with descriptions
-const DEFAULT_CATEGORIES = [
-    { scrap_type: 'Iron', description: 'Ferrous metal, commonly found in construction materials, old machinery, and vehicles' },
-    { scrap_type: 'Copper', description: 'Non-ferrous metal with high conductivity, found in wires, pipes, and electronics' },
-    { scrap_type: 'Brass', description: 'Alloy of copper and zinc, commonly found in fittings, valves, and decorative items' },
-    { scrap_type: 'Aluminium', description: 'Lightweight non-ferrous metal, found in cans, window frames, and automotive parts' },
-    { scrap_type: 'Steel', description: 'Strong ferrous metal alloy, found in appliances, beams, and industrial equipment' },
-    { scrap_type: 'Plastic', description: 'Various plastic materials including bottles, containers, and packaging waste' },
-    { scrap_type: 'Paper', description: 'Paper products including cardboard, newspapers, and office paper waste' },
-    { scrap_type: 'Electronic Gadgets', description: 'E-waste including phones, computers, tablets, and electronic components' },
-    { scrap_type: 'Others', description: 'Other scrap materials not listed above' }
+// All available scrap categories - always show these in dropdown
+const ALL_SCRAP_TYPES = [
+    { scrap_type: 'Iron', defaultDescription: 'Ferrous metal, commonly found in construction materials, old machinery, and vehicles' },
+    { scrap_type: 'Copper', defaultDescription: 'Non-ferrous metal with high conductivity, found in wires, pipes, and electronics' },
+    { scrap_type: 'Brass', defaultDescription: 'Alloy of copper and zinc, commonly found in fittings, valves, and decorative items' },
+    { scrap_type: 'Aluminium', defaultDescription: 'Lightweight non-ferrous metal, found in cans, window frames, and automotive parts' },
+    { scrap_type: 'Steel', defaultDescription: 'Strong ferrous metal alloy, found in appliances, beams, and industrial equipment' },
+    { scrap_type: 'Plastic', defaultDescription: 'Various plastic materials including bottles, containers, and packaging waste' },
+    { scrap_type: 'Paper', defaultDescription: 'Paper products including cardboard, newspapers, and office paper waste' },
+    { scrap_type: 'Electronic Gadgets', defaultDescription: 'E-waste including phones, computers, tablets, and electronic components' },
+    { scrap_type: 'Others', defaultDescription: 'Other scrap materials not listed above' }
 ];
 
 function AddScrapCollection() {
@@ -37,7 +38,8 @@ function AddScrapCollection() {
         weight: '',
         quantity: 1,
         status: 'collected',
-        custom_description: ''
+        custom_description: '',
+        description: ''
     });
     const [isOtherCategory, setIsOtherCategory] = useState(false);
 
@@ -62,27 +64,15 @@ function AddScrapCollection() {
     const fetchCategories = async () => {
         try {
             setLoading(true);
-            const { data, error } = await supabaseClient
-                .from('scrap_categories')
-                .select('*')
-                .order('scrap_type', { ascending: true });
-
-            if (error) throw error;
-            
-            // If no categories exist, use default categories
-            if (!data || data.length === 0) {
-                setCategories(DEFAULT_CATEGORIES.map((cat, index) => ({
-                    category_id: `default-${index}`,
-                    ...cat
-                })));
-            } else {
-                setCategories(data);
-            }
+            // Always use ALL_SCRAP_TYPES for the dropdown
+            setCategories(ALL_SCRAP_TYPES.map((cat, index) => ({
+                category_id: `scrap-type-${index}`,
+                ...cat
+            })));
         } catch (error) {
-            console.error('Error fetching categories:', error);
-            setMessage({ type: 'error', text: 'Failed to load categories. Using default categories.' });
-            setCategories(DEFAULT_CATEGORIES.map((cat, index) => ({
-                category_id: `default-${index}`,
+            console.error('Error setting categories:', error);
+            setCategories(ALL_SCRAP_TYPES.map((cat, index) => ({
+                category_id: `scrap-type-${index}`,
                 ...cat
             })));
         } finally {
@@ -178,9 +168,12 @@ function AddScrapCollection() {
                 // STEP 2: Category doesn't exist - create it with generated UUID
                 console.log('Creating new category:', selectedCategory.scrap_type);
                 
-                const categoryDescription = selectedCategory.scrap_type === 'Others' 
-                    ? formData.custom_description 
-                    : selectedCategory.description;
+                // Use user's description input, or custom_description for 'Others', or defaultDescription as fallback
+                const categoryDescription = formData.description?.trim() 
+                    ? formData.description 
+                    : (selectedCategory.scrap_type === 'Others' 
+                        ? formData.custom_description 
+                        : selectedCategory.defaultDescription);
                 
                 // Generate UUID for new category
                 finalCategoryId = crypto.randomUUID();
@@ -239,7 +232,8 @@ function AddScrapCollection() {
                 weight: '',
                 quantity: 1,
                 status: 'collected',
-                custom_description: ''
+                custom_description: '',
+                description: ''
             });
             setIsOtherCategory(false);
 
@@ -415,6 +409,23 @@ function AddScrapCollection() {
                                         <p className="help-text">Enter the total weight in kilograms (e.g., 10.5)</p>
                                     </div>
 
+                                    {/* Description Input - User can add additional details */}
+                                    <div className="form-group">
+                                        <label htmlFor="description">
+                                            Description (Optional)
+                                        </label>
+                                        <textarea
+                                            id="description"
+                                            name="description"
+                                            value={formData.description}
+                                            onChange={handleInputChange}
+                                            placeholder="Add any additional details about this scrap collection (condition, source, etc.)"
+                                            className="form-textarea"
+                                            rows="3"
+                                        />
+                                        <p className="help-text">Add any additional details about the scrap material</p>
+                                    </div>
+
                                     {/* Status Selection */}
                                     <div className="form-group">
                                         <label htmlFor="status">
@@ -469,8 +480,7 @@ function AddScrapCollection() {
                                                 Adding...
                                             </>
                                         ) : (
-                                            <>
-                                                <span>➕</span>
+                                            <>Scrap
                                                 Add Collection
                                             </>
                                         )}
