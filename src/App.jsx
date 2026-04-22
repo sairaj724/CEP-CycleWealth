@@ -7,6 +7,8 @@ import Connections from "./pages/Connections";
 import AddScrapCollection from "./pages/AddScrapCollection";
 import ViewScrapInventory from "./pages/ViewScrapInventory";
 import EditScrapItem from "./pages/EditScrapItem";
+import DealerProfile from "./pages/DealerProfile";
+import SkilledLaborProfile from "./pages/SkilledLaborProfile";
 import Consumer from "./pages/Consumer";
 import Ecom from "./pages/Ecom";
 import Artisan from "./pages/Artisan";
@@ -34,6 +36,8 @@ function App() {
         <Route path="/add-scrap" element={<AddScrapCollection />} />
         <Route path="/view-inventory" element={<ViewScrapInventory />} />
         <Route path="/edit-scrap/:id" element={<EditScrapItem />} />
+        <Route path="/dealer-profile" element={<DealerProfile />} />
+        <Route path="/skilled-labor-profile" element={<SkilledLaborProfile />} />
         <Route path="/consumer" element={<Consumer />} />
         <Route path="/ecom" element={<Ecom />} />
         <Route path="/artisan" element={<Artisan />} />

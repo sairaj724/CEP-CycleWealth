@@ -223,7 +223,7 @@
   box-shadow: 
     0 4px 20px rgba(0, 0, 0, 0.06),
     0 1px 3px rgba(0, 0, 0, 0.04),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+    inset 0 0 0 1px rgba(26, 191, 8, 0.6);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   display: flex;
   flex-direction: column;
@@ -338,7 +338,7 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(79, 249, 0, 0.4), transparent);
   animation: shimmer 3s infinite;
 }
 
@@ -456,7 +456,7 @@
 }
 
 .stat {
-  background: linear-gradient(145deg, #f0f9f2, #e8f5e9);
+  background: linear-gradient(145deg, #91efa5, #0c9217);
   padding: 16px;
   border-radius: 16px;
   position: relative;

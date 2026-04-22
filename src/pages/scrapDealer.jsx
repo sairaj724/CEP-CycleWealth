@@ -20,6 +20,7 @@ import {
     LocateFixed
 } from 'lucide-react';
 import './scrapDealer.css';
+import Navbar2 from '../components/Navbar2';
 
 function ScrapDealer() {
     const navigate = useNavigate();
@@ -30,7 +31,7 @@ function ScrapDealer() {
         firstName: '',
         lastName: '',
         email: '',
-        phone: '',
+        contact_number: '',
         address: '',
         city: '',
         state: '',
@@ -88,16 +89,7 @@ function ScrapDealer() {
         'Construction Debris'
     ];
 
-    const paymentMethodsOptions = [
-        'Cash',
-        'Bank Transfer',
-        'UPI',
-        'Paytm',
-        'Google Pay',
-        'PhonePe',
-        'Cheque',
-        'Credit/Debit Card'
-    ];
+
 
     const certificationOptions = [
         'ISO 14001',
@@ -141,22 +133,41 @@ function ScrapDealer() {
 
             if (userError) throw userError;
 
-            // Get extended profile info
-            const { data: profileData, error: profileError } = await supabaseClient
-                .from('scrap_dealer_profiles')
-                .select('*')
-                .eq('user_id', userId)
-                .single();
+            // Get extended profile info (optional - table may not exist)
+            let profileData = {};
+            try {
+                const { data: pd, error: profileError } = await supabaseClient
+                    .from('scrapdealer_profile')
+                    .select('*')
+                    .eq('dealer_id', userId)
+                    .single();
+                if (!profileError && pd) profileData = pd;
+            } catch (e) {
+                // Table doesn't exist, use empty object
+                console.log('Profile table not found, using user data only');
+            }
 
             const combinedProfile = {
-                businessName: userData["First name"] + " " + userData["Last_Name"],
                 firstName: userData["First name"] || '',
                 lastName: userData["Last_Name"] || '',
                 email: userData.email_address || '',
-                phone: userData.phone || '',
                 latitude: userData.latitude,
                 longitude: userData.longitude,
-                ...profileData
+                businessName: profileData.business_name || userData["First name"] + " " + userData["Last_Name"],
+                contact_number: profileData.contact_number || '',
+                address: profileData.Area || '',
+                city: profileData.City || '',
+                state: profileData.State || '',
+                zipCode: profileData.pincode || '',
+                description: profileData.business_description || '',
+                establishedYear: profileData.established_year || '',
+                workingHours: profileData.working_hours || '',
+                licence: profileData.licence || '',
+                socialMedia: {
+                    facebook: profileData.facebook || '',
+                    instagram: profileData.instagram || '',
+                    twitter: profileData.twitter || ''
+                }
             };
 
             setProfile(combinedProfile);
@@ -220,47 +231,35 @@ function ScrapDealer() {
             setError('');
             setSuccess('');
 
-            // Update basic user info
-            const { error: userError } = await supabaseClient
-                .from('users')
-                .update({
-                    phone: profile.phone,
-                    latitude: profile.latitude,
-                    longitude: profile.longitude
-                })
-                .eq('user_id', currentUser.user_id);
+            // Try to save to profile table (may not exist)
+            try {
+                const profileData = {
+                    dealer_id: currentUser.user_id,
+                    business_name: profile.businessName,
+                    contact_number: profile.contact_number,
+                    Area: profile.address,
+                    City: profile.city,
+                    State: profile.state,
+                    pincode: profile.zipCode,
+                    business_description: profile.description,
+                    established_year: profile.establishedYear,
+                    working_hours: profile.workingHours,
+                    facebook: profile.socialMedia?.facebook,
+                    instagram: profile.socialMedia?.instagram,
+                    twitter: profile.socialMedia?.twitter,
+                    licence: profile.licence
+                };
 
-            if (userError) throw userError;
-
-            // Update extended profile
-            const profileData = {
-                user_id: currentUser.user_id,
-                business_name: profile.businessName,
-                address: profile.address,
-                city: profile.city,
-                state: profile.state,
-                zip_code: profile.zipCode,
-                description: profile.description,
-                services: profile.services,
-                working_hours: profile.workingHours,
-                established_year: profile.establishedYear,
-                website: profile.website,
-                social_media: profile.socialMedia,
-                certifications: profile.certifications,
-                specialties: profile.specialties,
-                pickup_radius: profile.pickupRadius,
-                minimum_weight: profile.minimumWeight,
-                payment_methods: profile.paymentMethods,
-                updated_at: new Date().toISOString()
-            };
-
-            const { error: profileError } = await supabaseClient
-                .from('scrap_dealer_profiles')
-                .upsert(profileData, {
-                    onConflict: 'user_id'
-                });
-
-            if (profileError) throw profileError;
+                await supabaseClient
+                    .from('scrapdealer_profile')
+                    .upsert(profileData, {
+                        onConflict: 'dealer_id'
+                    });
+            } catch (e) {
+                console.log('Could not save to profile table:', e.message);
+                setError('Failed to save profile: ' + e.message);
+                return;
+            }
 
             setSuccess('Profile updated successfully!');
             setIsEditing(false);
@@ -293,7 +292,7 @@ function ScrapDealer() {
 
     return (
         <div className="profile-page">
-            <SharedNavbar activeLink="profile" />
+            <Navbar2 activeLink="profile"/>
             <div className="profile-container">
                 
                 {/* Profile Header Card */}
@@ -407,7 +406,7 @@ function ScrapDealer() {
                         {isEditing ? (
                             <textarea
                                 name="description"
-                                value={profile.description}
+                                value={profile.description || ''}
                                 onChange={handleInputChange}
                                 className="form-textarea"
                                 rows="4"
@@ -711,6 +710,36 @@ function ScrapDealer() {
                     <div className="profile-section">
                         <h2 className="section-title">Business Details</h2>
                         <div className="info-grid">
+                            <div className="info-group">
+                                <label>Contact Number</label>
+                                {isEditing ? (
+                                    <input
+                                        type="tel"
+                                        name="contact_number"
+                                        value={profile.contact_number || ''}
+                                        onChange={handleInputChange}
+                                        className="form-input"
+                                        placeholder="Enter phone number"
+                                    />
+                                ) : (
+                                    <p>{profile.contact_number || 'Not provided'}</p>
+                                )}
+                            </div>
+                            <div className="info-group">
+                                <label>Licence</label>
+                                {isEditing ? (
+                                    <input
+                                        type="text"
+                                        name="licence"
+                                        value={profile.licence || ''}
+                                        onChange={handleInputChange}
+                                        className="form-input"
+                                        placeholder="Enter licence number"
+                                    />
+                                ) : (
+                                    <p>{profile.licence || 'Not provided'}</p>
+                                )}
+                            </div>
                             <div className="info-group full-width">
                                 <label>Business Description</label>
                                 {isEditing ? (
@@ -755,100 +784,6 @@ function ScrapDealer() {
                                     />
                                 ) : (
                                     <p>{profile.workingHours || 'Not provided'}</p>
-                                )}
-                            </div>
-                            <div className="info-group">
-                                <label>Website</label>
-                                {isEditing ? (
-                                    <input
-                                        type="url"
-                                        name="website"
-                                        value={profile.website}
-                                        onChange={handleInputChange}
-                                        className="form-input"
-                                        placeholder="https://yourwebsite.com"
-                                    />
-                                ) : (
-                                    <p>{profile.website ? <a href={profile.website} target="_blank" rel="noopener noreferrer">{profile.website}</a> : 'Not provided'}</p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Services */}
-                    <div className="profile-section">
-                        <h2 className="section-title">Services Offered</h2>
-                        <div className="services-grid">
-                            {availableServices.map(service => (
-                                <div key={service} className="service-item">
-                                    <label className="checkbox-label">
-                                        <input
-                                            type="checkbox"
-                                            checked={profile.services?.includes(service) || false}
-                                            onChange={() => handleServiceToggle(service)}
-                                            disabled={!isEditing}
-                                        />
-                                        <span className="checkmark"></span>
-                                        {service}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Specialties */}
-                    <div className="profile-section">
-                        <h2 className="section-title">Specialties & Expertise</h2>
-                        <div className="info-group full-width">
-                            {isEditing ? (
-                                <textarea
-                                    name="specialties"
-                                    value={profile.specialties}
-                                    onChange={handleInputChange}
-                                    className="form-textarea"
-                                    rows="3"
-                                    placeholder="Describe your specialties, expertise, and unique selling points..."
-                                />
-                            ) : (
-                                <p>{profile.specialties || 'No specialties specified'}</p>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Service Area */}
-                    <div className="profile-section">
-                        <h2 className="section-title">Service Area & Requirements</h2>
-                        <div className="info-grid">
-                            <div className="info-group">
-                                <label>Pickup Radius (km)</label>
-                                {isEditing ? (
-                                    <input
-                                        type="number"
-                                        name="pickupRadius"
-                                        value={profile.pickupRadius}
-                                        onChange={handleInputChange}
-                                        className="form-input"
-                                        min="1"
-                                        placeholder="e.g., 25"
-                                    />
-                                ) : (
-                                    <p>{profile.pickupRadius ? `${profile.pickupRadius} km` : 'Not specified'}</p>
-                                )}
-                            </div>
-                            <div className="info-group">
-                                <label>Minimum Weight (kg)</label>
-                                {isEditing ? (
-                                    <input
-                                        type="number"
-                                        name="minimumWeight"
-                                        value={profile.minimumWeight}
-                                        onChange={handleInputChange}
-                                        className="form-input"
-                                        min="1"
-                                        placeholder="e.g., 10"
-                                    />
-                                ) : (
-                                    <p>{profile.minimumWeight ? `${profile.minimumWeight} kg` : 'Not specified'}</p>
                                 )}
                             </div>
                         </div>
