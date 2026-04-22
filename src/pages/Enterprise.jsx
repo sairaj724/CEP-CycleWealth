@@ -169,27 +169,41 @@ function Enterprise() {
 
             {/* Process Section */}
             <div className="enterprise-process">
-                <h2>Simple 4-Step Process</h2>
-                <div className="process-steps">
-                    <div className="step">
-                        <div className="step-num">1</div>
-                        <h3>Register Your Business</h3>
-                        <p>Create your enterprise account and verify your business details</p>
+                <h2>How It Works</h2>
+                <p className="process-subtitle">Get started in 4 simple steps</p>
+                <div className="process-timeline">
+                    <div className="timeline-line"></div>
+                    <div className="process-step">
+                        <div className="step-icon">📝</div>
+                        <div className="step-content">
+                            <span className="step-number">01</span>
+                            <h3>Register</h3>
+                            <p>Create your enterprise account and complete your business profile verification</p>
+                        </div>
                     </div>
-                    <div className="step">
-                        <div className="step-num">2</div>
-                        <h3>Post Requirements</h3>
-                        <p>Specify your scrap material needs, quantity, and budget</p>
+                    <div className="process-step">
+                        <div className="step-icon">📋</div>
+                        <div className="step-content">
+                            <span className="step-number">02</span>
+                            <h3>Post Requirements</h3>
+                            <p>Specify scrap material types, quantities needed, and your budget range</p>
+                        </div>
                     </div>
-                    <div className="step">
-                        <div className="step-num">3</div>
-                        <h3>Connect with Dealers</h3>
-                        <p>Get matched with verified dealers in your area</p>
+                    <div className="process-step">
+                        <div className="step-icon">🤝</div>
+                        <div className="step-content">
+                            <span className="step-number">03</span>
+                            <h3>Get Connected</h3>
+                            <p>Receive matches with verified scrap dealers in your area</p>
+                        </div>
                     </div>
-                    <div className="step">
-                        <div className="step-num">4</div>
-                        <h3>Finalize Deals</h3>
-                        <p>Negotiate terms and complete transactions securely</p>
+                    <div className="process-step">
+                        <div className="step-icon">✅</div>
+                        <div className="step-content">
+                            <span className="step-number">04</span>
+                            <h3>Close Deals</h3>
+                            <p>Negotiate terms and complete secure transactions</p>
+                        </div>
                     </div>
                 </div>
             </div>

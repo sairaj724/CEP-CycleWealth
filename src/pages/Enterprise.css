@@ -73,19 +73,20 @@
 
 .benefits-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
     max-width: 1200px;
     margin: 0 auto;
 }
 
 .benefit-card {
     background: white;
-    padding: 20px 15px;
+    padding: 30px 20px;
     border-radius: 12px;
     text-align: center;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-top: 4px solid #0f9d58;
 }
 
 .benefit-card:hover {
@@ -99,91 +100,155 @@
 }
 
 .benefit-card h3 {
-    font-size: 1rem;
-    margin-bottom: 10px;
-    color: #2d3748;
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    color: #0f9d58;
+    font-weight: 600;
 }
 
 .benefit-card p {
-    color: #718096;
-    line-height: 1.5;
-    font-size: 0.85rem;
+    color: #4a5568;
+    line-height: 1.6;
+    font-size: 0.9rem;
 }
 
-/* Process Section */
+/* Process Section - Timeline Design */
 .enterprise-process {
-    padding: 80px 40px;
-    background: white;
+    padding: 100px 40px;
+    background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
 }
 
 .enterprise-process h2 {
     text-align: center;
-    font-size: 2.5rem;
-    margin-bottom: 50px;
+    font-size: 2.8rem;
+    margin-bottom: 10px;
     color: #2d3748;
+    font-weight: 700;
 }
 
-.process-steps {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+.process-subtitle {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #718096;
+    margin-bottom: 60px;
+}
+
+.process-timeline {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
     max-width: 1200px;
     margin: 0 auto;
+    position: relative;
+    padding: 0 20px;
 }
 
-.step {
+.timeline-line {
+    position: absolute;
+    top: 35px;
+    left: 12%;
+    right: 12%;
+    height: 4px;
+    background: linear-gradient(90deg, #0f9d58, #34d399, #0f9d58);
+    border-radius: 2px;
+    z-index: 0;
+}
+
+.process-step {
+    flex: 1;
     text-align: center;
     position: relative;
-    padding: 15px;
+    z-index: 1;
+    max-width: 260px;
+    padding: 0 15px;
 }
 
-/* .step-number {
-    width: 50px;
-    height: 50px;
-    background: #90b6a4;
-    color: white;
+.step-icon {
+    width: 70px;
+    height: 70px;
+    background: white;
+    border: 4px solid #0f9d58;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.3rem;
-    font-weight: bold;
-    margin: 0 auto 15px;
-} */
-
-.step-num {
-    width: 50px;
-    height: 50px;
-    background: #199c5f;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-    font-weight: bold;
-    margin: 0 auto 15px;
+    font-size: 2rem;
+    margin: 0 auto 25px;
+    box-shadow: 0 6px 20px rgba(15, 157, 88, 0.2);
+    transition: all 0.3s ease;
 }
 
-.step h3 {
-    font-size: 1rem;
-    margin-bottom: 10px;
-    margin-top: 10px;
+.process-step:hover .step-icon {
+    transform: scale(1.1);
+    background: #0f9d58;
+    box-shadow: 0 8px 25px rgba(15, 157, 88, 0.4);
+}
+
+.step-content {
+    background: white;
+    padding: 30px 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border-top: 4px solid #0f9d58;
+    transition: all 0.3s ease;
+}
+
+.process-step:hover .step-content {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.step-number {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f9d58;
+    background: #e6f4ea;
+    padding: 5px 15px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+}
+
+.step-content h3 {
+    font-size: 1.3rem;
+    margin-bottom: 12px;
     color: #2d3748;
+    font-weight: 700;
 }
 
-.step p {
-   
-    line-height: 1.5;
-    font-size: 1rem;
-    font-weight:500;
+.step-content p {
+    line-height: 1.7;
+    font-size: 0.95rem;
+    color: #718096;
+}
+
+/* Responsive Timeline */
+@media (max-width: 992px) {
+    .process-timeline {
+        flex-direction: column;
+        align-items: center;
+        gap: 40px;
+    }
+
+    .timeline-line {
+        display: none;
+    }
+
+    .process-step {
+        max-width: 400px;
+        width: 100%;
+    }
+
+    .step-icon {
+        margin-bottom: 20px;
+    }
 }
 
 /* Stats Section */
 .enterprise-stats {
     background: linear-gradient(135deg, #0f9d58, #34d399);
     padding: 60px 40px;
-    color: rgb(70, 165, 51);
+    color: white;
 }
 
 .stats-container {
@@ -199,11 +264,13 @@
     font-size: 2.5rem;
     margin-bottom: 10px;
     font-weight: 700;
+    color: white;
 }
 
 .stat p {
     font-size: 1.1rem;
-    opacity: 0.95;
+    opacity: 0.9;
+    color: white;
 }
 
 /* CTA Form Section */
