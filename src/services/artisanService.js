@@ -275,3 +275,181 @@ export const deleteArtisanProduct = async (productId) => {
         throw error;
     }
 };
+
+/**
+ * Fetch all scrap dealers from the database
+ * @returns {Promise<Array>} - Array of scrap dealers with their profiles
+ */
+export const getScrapDealers = async () => {
+    try {
+        // Fetch scrap dealers from users table
+        const { data: usersData, error: usersError } = await supabaseClient
+            .from('users')
+            .select('user_id, "First name", "Last_Name", email_address, latitude, longitude')
+            .eq('role', 'ScrapDealer');
+
+        if (usersError) {
+            console.error('Error fetching scrap dealers:', usersError);
+            throw usersError;
+        }
+
+        if (!usersData || usersData.length === 0) {
+            return [];
+        }
+
+        // Get dealer IDs to fetch their profiles
+        const dealerIds = usersData.map(u => u.user_id);
+
+        // Fetch extended profile data from scrapdealer_profile
+        const { data: profilesData, error: profilesError } = await supabaseClient
+            .from('scrapdealer_profile')
+            .select('dealer_id, business_name, contact_number, "Area", "City", "State", pincode, business_description, established_year, working_hours')
+            .in('dealer_id', dealerIds);
+
+        if (profilesError) {
+            console.error('Error fetching dealer profiles:', profilesError);
+            // Continue without profile data
+        }
+
+        // Combine user data with profile data
+        const dealers = usersData.map(user => {
+            const profile = profilesData?.find(p => p.dealer_id === user.user_id) || {};
+            const fullName = `${user["First name"] || ''} ${user["Last_Name"] || ''}`.trim();
+
+            // Build address from profile fields
+            const addressParts = [profile.Area, profile.City, profile.State].filter(Boolean);
+            const address = addressParts.join(', ') || 'Location not specified';
+
+            // Determine materials based on business description or default
+            let materials = 'All Types';
+            if (profile.business_description) {
+                const desc = profile.business_description.toLowerCase();
+                if (desc.includes('paper')) materials = 'Paper, Cardboard';
+                else if (desc.includes('plastic')) materials = 'Plastic, PET';
+                else if (desc.includes('metal')) materials = 'Metal, Iron, Steel';
+                else if (desc.includes('e-waste') || desc.includes('electronic')) materials = 'E-Waste, Electronics';
+                else if (desc.includes('glass')) materials = 'Glass, Bottles';
+            }
+
+            // Generate a mock price based on materials
+            let price = '₹25/kg';
+            if (materials.includes('Paper')) price = '₹15/kg';
+            else if (materials.includes('Plastic')) price = '₹20/kg';
+            else if (materials.includes('Metal')) price = '₹45/kg';
+            else if (materials.includes('E-Waste')) price = '₹60/kg';
+            else if (materials.includes('Glass')) price = '₹10/kg';
+
+            // Generate a random rating between 4.0 and 5.0
+            const rating = (4 + Math.random()).toFixed(1);
+
+            return {
+                id: user.user_id,
+                name: profile.business_name || fullName || 'Scrap Dealer',
+                materials: materials,
+                price: price,
+                location: address,
+                rating: parseFloat(rating),
+                contact: profile.contact_number || 'Contact via app',
+                email: user.email_address,
+                workingHours: profile.working_hours || '9 AM - 6 PM',
+                latitude: user.latitude,
+                longitude: user.longitude
+            };
+        });
+
+        return dealers;
+    } catch (error) {
+        console.error('Error in getScrapDealers:', error);
+        return [];
+    }
+};
+
+/**
+ * Create a scrap order from artisan to scrap dealer
+ * @param {Object} orderData - Order details
+ * @param {string} orderData.dealerId - Scrap dealer user ID
+ * @param {string} orderData.materialType - Type of scrap material needed
+ * @param {string} orderData.quantity - Quantity needed
+ * @param {number} orderData.offeredPrice - Price offered by artisan
+ * @param {string} orderData.notes - Additional notes
+ * @returns {Promise<{orderId: string, success: boolean}>}
+ */
+export const createScrapOrder = async (orderData) => {
+    try {
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user || !user.user_id) {
+            throw new Error('User not authenticated');
+        }
+
+        const orderId = crypto.randomUUID();
+
+        // Create order in database with seller_id as the dealer
+        const { data, error } = await supabaseClient
+            .from('orders')
+            .insert({
+                order_id: orderId,
+                buyer_id: user.user_id,
+                seller_id: orderData.dealerId,
+                total_amount: orderData.offeredPrice,
+                order_status: 'processing',
+                order_type: 'customers'
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        return { orderId, success: true, data };
+    } catch (error) {
+        console.error('Error creating scrap order:', error);
+        throw error;
+    }
+};
+
+/**
+ * Send scrap request notification to dealer
+ * @param {string} dealerId - Scrap dealer user ID
+ * @param {Object} requestData - Request details
+ * @returns {Promise<{success: boolean}>}
+ */
+export const sendScrapRequestNotification = async (dealerId, requestData) => {
+    try {
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user || !user.user_id) {
+            throw new Error('User not authenticated');
+        }
+
+        const artisanName = `${user["First name"] || ''} ${user["Last_Name"] || ''}`.trim() || 'An Artisan';
+
+        const message = `${artisanName} wants to buy ${requestData.materialType} (${requestData.quantity}) - Offered: ₹${requestData.offeredPrice}/kg`;
+
+        const { error } = await supabaseClient
+            .from('notifications')
+            .insert({
+                user_id: dealerId,
+                message: message,
+                type: 'system',
+                is_read: false,
+                data: {
+                    action: 'scrap_request',
+                    order_id: requestData.orderId,
+                    artisan_id: user.user_id,
+                    artisan_name: artisanName,
+                    material_type: requestData.materialType,
+                    quantity: requestData.quantity,
+                    offered_price: requestData.offeredPrice,
+                    notes: requestData.notes,
+                    status: 'pending',
+                    requires_action: true,
+                    actions: ['accept', 'counter_offer', 'decline']
+                }
+            });
+
+        if (error) throw error;
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error sending scrap request notification:', error);
+        throw error;
+    }
+};

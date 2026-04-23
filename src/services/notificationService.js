@@ -436,3 +436,99 @@ export const getConnectedUsers = async (userId) => {
         return { data: [], error: error.message };
     }
 };
+
+/**
+ * Respond to a scrap request (accept, counter-offer, or decline)
+ * @param {string} orderId - The order ID
+ * @param {string} action - 'accept', 'counter_offer', or 'decline'
+ * @param {number} counterPrice - Counter offer price (only for counter_offer action)
+ * @returns {Promise<{success: boolean, error: string}>}
+ */
+export const respondToScrapRequest = async (orderId, action, counterPrice = null) => {
+    try {
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user || !user.user_id) {
+            return { success: false, error: 'User not authenticated' };
+        }
+
+        console.log('Responding to scrap request:', { orderId, action, counterPrice, sellerId: user.user_id });
+
+        // Update order status based on action
+        let newStatus = 'processing';
+        if (action === 'accept') {
+            newStatus = 'shipped'; // Move to next step
+        } else if (action === 'decline') {
+            newStatus = 'delivered'; // Using delivered as declined status
+        }
+
+        // Update order status
+        const { error: orderError } = await supabaseClient
+            .from('orders')
+            .update({ order_status: newStatus })
+            .eq('order_id', orderId)
+            .eq('seller_id', user.user_id);
+
+        if (orderError) {
+            console.error('Error updating order:', orderError);
+            throw orderError;
+        }
+
+        // Get order details to find the buyer
+        const { data: orderData, error: fetchError } = await supabaseClient
+            .from('orders')
+            .select('buyer_id, total_amount')
+            .eq('order_id', orderId)
+            .single();
+
+        if (fetchError) {
+            console.error('Error fetching order:', fetchError);
+            throw fetchError;
+        }
+
+        console.log('Order data found:', orderData);
+
+        // Send notification back to the artisan
+        const dealerName = `${user["First name"] || ''} ${user["Last_Name"] || ''}`.trim() || 'Scrap Dealer';
+
+        let message = '';
+        if (action === 'accept') {
+            message = `${dealerName} accepted your scrap request! Order #${orderId.slice(0, 8)}`;
+        } else if (action === 'decline') {
+            message = `${dealerName} declined your scrap request. Order #${orderId.slice(0, 8)}`;
+        } else if (action === 'counter_offer') {
+            message = `${dealerName} sent a counter offer of ₹${counterPrice}/kg. Order #${orderId.slice(0, 8)}`;
+        }
+
+        console.log('Sending notification to buyer:', orderData.buyer_id, 'Message:', message);
+
+        const { data: notifyData, error: notifyError } = await supabaseClient
+            .from('notifications')
+            .insert({
+                user_id: orderData.buyer_id,
+                message: message,
+                type: 'system',
+                is_read: false,
+                data: {
+                    action: 'scrap_response',
+                    order_id: orderId,
+                    response: action,
+                    counter_price: counterPrice,
+                    dealer_id: user.user_id,
+                    dealer_name: dealerName
+                }
+            })
+            .select();
+
+        if (notifyError) {
+            console.error('Error sending notification:', notifyError);
+            throw notifyError;
+        }
+
+        console.log('Notification sent successfully:', notifyData);
+
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error responding to scrap request:', error);
+        return { success: false, error: error.message };
+    }
+};

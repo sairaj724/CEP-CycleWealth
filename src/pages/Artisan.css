@@ -861,3 +861,79 @@
     cursor: not-allowed;
     transform: none !important;
 }
+
+/* Contact Modal */
+.contact-modal {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 450px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.contact-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.contact-label {
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.contact-value {
+    font-size: 16px;
+    color: #333;
+    font-weight: 600;
+}
+
+.close-contact-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #0f9d58, #34d399);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.close-contact-btn:hover {
+    transform: scale(1.02);
+}
+
+/* Buy Scrap Modal */
+.buy-scrap-modal {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.loading-dealers,
+.no-dealers-found {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-size: 16px;
+}

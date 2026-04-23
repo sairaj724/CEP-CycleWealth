@@ -368,6 +368,77 @@
     text-decoration: underline;
 }
 
+/* Notification Action Buttons Row */
+.notification-actions-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.action-btn-accept,
+.action-btn-counter,
+.action-btn-decline {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-btn-accept {
+    background: #10b981;
+    color: white;
+}
+
+.action-btn-accept:hover {
+    background: #059669;
+}
+
+.action-btn-counter {
+    background: #f59e0b;
+    color: white;
+}
+
+.action-btn-counter:hover {
+    background: #d97706;
+}
+
+.action-btn-decline {
+    background: #ef4444;
+    color: white;
+}
+
+.action-btn-decline:hover {
+    background: #dc2626;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.status-badge.accepted {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.status-badge.declined {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.status-badge.countered {
+    background: #fef3c7;
+    color: #d97706;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
     .notification-panel {
@@ -394,5 +465,17 @@
 
     .delete-btn {
         opacity: 1;
+    }
+
+    .notification-actions-row {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .action-btn-accept,
+    .action-btn-counter,
+    .action-btn-decline {
+        width: 100%;
+        padding: 8px 12px;
     }
 }

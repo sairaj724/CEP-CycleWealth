@@ -11,7 +11,8 @@ import {
     unsubscribeFromNotifications,
     formatNotificationTime,
     getNotificationIcon,
-    getNotificationColor
+    getNotificationColor,
+    respondToScrapRequest
 } from '../services/notificationService';
 import './NotificationDropdown.css';
 
@@ -133,6 +134,42 @@ const NotificationDropdown = ({ user }) => {
     // Filter change
     const handleFilterChange = (newFilter) => {
         setFilter(newFilter);
+    };
+
+    // Handle scrap request response (accept/counter/decline)
+    const handleScrapResponse = async (e, notification, action) => {
+        e.stopPropagation();
+
+        const orderId = notification.data?.order_id;
+        if (!orderId) return;
+
+        let counterPrice = null;
+        if (action === 'counter_offer') {
+            counterPrice = prompt('Enter your counter offer price (₹/kg):');
+            if (!counterPrice || isNaN(counterPrice)) return;
+        }
+
+        const { success, error } = await respondToScrapRequest(orderId, action, counterPrice);
+
+        if (success) {
+            // Update notification status locally
+            setNotifications(prev =>
+                prev.map(n =>
+                    n.id === notification.id
+                        ? { ...n, data: { ...n.data, status: action === 'accept' ? 'accepted' : action === 'decline' ? 'declined' : 'countered' } }
+                        : n
+                )
+            );
+
+            const message = action === 'accept'
+                ? 'Request accepted! Artisan will be notified.'
+                : action === 'decline'
+                    ? 'Request declined.'
+                    : `Counter offer of ₹${counterPrice}/kg sent!`;
+            alert(message);
+        } else {
+            alert('Failed to respond: ' + error);
+        }
     };
 
     // Toggle dropdown
@@ -263,6 +300,39 @@ const NotificationDropdown = ({ user }) => {
                                         <span className="notification-time">
                                             {formatNotificationTime(notification.created_at)}
                                         </span>
+                                        {/* Scrap Request Action Buttons */}
+                                        {notification.data?.action === 'scrap_request' && notification.data?.requires_action && (
+                                            <div className="notification-actions-row">
+                                                {notification.data?.status === 'pending' || !notification.data?.status ? (
+                                                    <>
+                                                        <button
+                                                            className="action-btn-accept"
+                                                            onClick={(e) => handleScrapResponse(e, notification, 'accept')}
+                                                        >
+                                                            ✓ Accept
+                                                        </button>
+                                                        <button
+                                                            className="action-btn-counter"
+                                                            onClick={(e) => handleScrapResponse(e, notification, 'counter_offer')}
+                                                        >
+                                                            ↻ Counter Offer
+                                                        </button>
+                                                        <button
+                                                            className="action-btn-decline"
+                                                            onClick={(e) => handleScrapResponse(e, notification, 'decline')}
+                                                        >
+                                                            ✕ Decline
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <span className={`status-badge ${notification.data?.status}`}>
+                                                        {notification.data?.status === 'accepted' ? '✓ Accepted' :
+                                                            notification.data?.status === 'declined' ? '✕ Declined' :
+                                                                notification.data?.status === 'countered' ? '↻ Countered' : ''}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="notification-meta">
                                         {!notification.is_read && (

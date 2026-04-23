@@ -280,7 +280,7 @@ function ScrapDealer() {
     if (loading) {
         return (
             <div className="profile-page">
-                <SharedNavbar activeLink="profile" />
+                <SharedNavbar activeLink="profile" user={currentUser}/>
                 <div className="profile-loading">
                     <div className="spinner"></div>
                     <p>Loading profile...</p>
@@ -291,7 +291,7 @@ function ScrapDealer() {
 
     return (
         <div className="profile-page">
-            <Navbar2 activeLink="profile"/>
+            <Navbar2 activeLink="profile" user={currentUser}/>
             <div className="profile-container">
                 
                 {/* Profile Header Card */}
