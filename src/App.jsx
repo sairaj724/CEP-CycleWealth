@@ -15,6 +15,7 @@ import Ecom from "./pages/Ecom";
 import Artisan from "./pages/Artisan";
 import Enterprise from "./pages/Enterprise";
 import CompanyOrder from "./pages/CompanyOrder";
+import OrderHistory from "./pages/OrderHistory";
 import Order from "./pages/Order";
 import MyOrders from "./pages/MyOrders";
 import CustomerProfile from "./pages/CustomerProfile";
@@ -78,6 +79,7 @@ function App() {
         <Route path="/artisan" element={<Artisan />} />
         <Route path="/enterprise" element={<Enterprise />} />
         <Route path="/companyorder" element={<CompanyOrder />} />
+        <Route path="/orderhistory" element={<OrderHistory />} />
         <Route path="/order" element={<Order />} />
         <Route path="/my-orders" element={<MyOrders />} />
         <Route path="/profile" element={<CustomerProfile />} />

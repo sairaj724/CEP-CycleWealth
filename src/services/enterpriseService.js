@@ -101,8 +101,7 @@ export const getIndustryProfile = async () => {
 
 /**
  * Create a new industry order
- * Schema matches: order_id, industry_id (unique), material_type, quantity, price,
- * delivery_details, City, PIN_code, Prefered_Delivery_Date, Person_name, phone_no
+ * Multiple orders allowed per enterprise
  * @param {Object} orderData - Order details
  * @returns {Promise<Object>} - The created order
  */
@@ -113,12 +112,13 @@ export const createIndustryOrder = async (orderData) => {
             throw new Error('Industry profile not found. Please register first.');
         }
 
+        // Send ONLY fields from your schema - NO created_at
         const { data, error } = await supabaseClient
             .from('industry_order')
             .insert({
                 industry_id: profile.company_id,
                 material_type: orderData.materialType,
-                quantity: parseFloat(orderData.quantity),
+                quantity: parseFloat(orderData.quantity) || 0,
                 price: orderData.price ? parseFloat(orderData.price) : null,
                 delivery_details: orderData.deliveryDetails,
                 'City': orderData.city,
@@ -130,7 +130,24 @@ export const createIndustryOrder = async (orderData) => {
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Order insert error details:', error);
+            console.error('Error code:', error.code);
+            console.error('Error message:', error.message);
+            console.error('Error details:', error.details);
+            
+            // Check if it's a unique constraint violation
+            if (error.code === '23505' || error.message?.includes('unique constraint') || error.message?.includes('industry_id_key')) {
+                throw new Error('You already have an active order. Multiple orders per company are not yet enabled. Please contact support.');
+            }
+            
+            // Check for column not found
+            if (error.message?.includes('column') || error.message?.includes('does not exist')) {
+                throw new Error('Database schema mismatch. Please contact support with error: ' + error.message);
+            }
+            
+            throw new Error('Failed to create order: ' + (error.message || 'Unknown error'));
+        }
 
         // Notify all scrap dealers about this new order
         try {
@@ -159,7 +176,7 @@ export const createIndustryOrder = async (orderData) => {
 };
 
 /**
- * Get order for the current user's enterprise (one order per industry due to unique constraint)
+ * Get the most recent order for the current user's enterprise
  * @returns {Promise<Object|null>} - The order or null
  */
 export const getIndustryOrder = async () => {
@@ -169,14 +186,18 @@ export const getIndustryOrder = async () => {
             return null;
         }
 
+        // Get the most recent order
+        // Don't use order by created_at since column might not exist
         const { data, error } = await supabaseClient
             .from('industry_order')
             .select('*')
             .eq('industry_id', profile.company_id)
-            .single();
+            .limit(1)
+            .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') {
-            throw error;
+        if (error) {
+            console.error('Error fetching order:', error);
+            return null;
         }
 
         return data;
@@ -353,4 +374,125 @@ export const getPlatformStats = async () => {
         totalScrapTons: Math.round(totalScrapTons),
         totalTransactions: Math.round(totalTransactions)
     };
+};
+
+/**
+ * Get all orders for the current industry (multiple orders supported)
+ * @returns {Promise<Array>} - Array of orders
+ */
+export const getIndustryOrders = async () => {
+    try {
+        const profile = await getIndustryProfile();
+        if (!profile) {
+            return [];
+        }
+
+        const { data, error } = await supabaseClient
+            .from('industry_order')
+            .select(`
+                *,
+                dealer:assigned_dealer_id (
+                    user_id,
+                    "First name",
+                    "Last_Name"
+                )
+            `)
+            .eq('industry_id', profile.company_id)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Format orders with dealer names
+        return (data || []).map(order => ({
+            ...order,
+            dealer_name: order.dealer ? `${order.dealer['First name']} ${order.dealer['Last_Name']}` : null
+        }));
+    } catch (error) {
+        console.error('Error fetching industry orders:', error);
+        return [];
+    }
+};
+
+/**
+ * Get order history (completed/fulfilled/cancelled orders)
+ * @returns {Promise<Array>} - Array of historical orders
+ */
+export const getIndustryOrderHistory = async () => {
+    try {
+        const profile = await getIndustryProfile();
+        if (!profile) {
+            return [];
+        }
+
+        const { data, error } = await supabaseClient
+            .from('industry_order_history')
+            .select('*')
+            .eq('industry_id', profile.company_id)
+            .order('completed_at', { ascending: false });
+
+        if (error) throw error;
+
+        return data || [];
+    } catch (error) {
+        console.error('Error fetching order history:', error);
+        return [];
+    }
+};
+
+/**
+ * Get a single order by ID
+ * @param {string} orderId - The order UUID
+ * @returns {Promise<Object|null>} - The order or null
+ */
+export const getIndustryOrderById = async (orderId) => {
+    try {
+        const { data, error } = await supabaseClient
+            .from('industry_order')
+            .select(`
+                *,
+                dealer:assigned_dealer_id (
+                    user_id,
+                    "First name",
+                    "Last_Name"
+                )
+            `)
+            .eq('order_id', orderId)
+            .single();
+
+        if (error) throw error;
+
+        return {
+            ...data,
+            dealer_name: data.dealer ? `${data.dealer['First name']} ${data.dealer['Last_Name']}` : null
+        };
+    } catch (error) {
+        console.error('Error fetching order:', error);
+        return null;
+    }
+};
+
+/**
+ * Mark order as fulfilled (when delivery is complete)
+ * @param {string} orderId - The order UUID
+ * @param {Object} fulfillmentData - Fulfillment details
+ * @returns {Promise<{success: boolean, error: Object}>}
+ */
+export const fulfillOrder = async (orderId, fulfillmentData = {}) => {
+    try {
+        const { error } = await supabaseClient
+            .from('industry_order')
+            .update({
+                status: 'fulfilled',
+                fulfillment_notes: fulfillmentData.notes || null,
+                updated_at: new Date().toISOString()
+            })
+            .eq('order_id', orderId);
+
+        if (error) throw error;
+
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error fulfilling order:', error);
+        return { success: false, error: error.message };
+    }
 };

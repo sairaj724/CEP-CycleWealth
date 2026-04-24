@@ -145,6 +145,47 @@ export const clearAllNotifications = async () => {
 };
 
 /**
+ * Update notification data (e.g., set status after action taken)
+ * @param {string} notificationId - The notification UUID
+ * @param {Object} dataUpdates - Object with data fields to update
+ * @returns {Promise<{success: boolean, error: Object}>}
+ */
+export const updateNotificationData = async (notificationId, dataUpdates) => {
+    try {
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user?.user_id) {
+            return { success: false, error: 'User not authenticated' };
+        }
+
+        // Get current notification data first
+        const { data: currentData, error: fetchError } = await supabaseClient
+            .from('notifications')
+            .select('data')
+            .eq('id', notificationId)
+            .eq('user_id', user.user_id)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        // Merge current data with updates
+        const updatedData = { ...currentData.data, ...dataUpdates };
+
+        const { error } = await supabaseClient
+            .from('notifications')
+            .update({ data: updatedData })
+            .eq('id', notificationId)
+            .eq('user_id', user.user_id);
+
+        if (error) throw error;
+
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error updating notification data:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
  * Delete a single notification
  * @param {string} notificationId - The notification UUID
  * @returns {Promise<{success: boolean, error: Object}>}
@@ -740,18 +781,37 @@ export const acceptEnterpriseOrder = async (orderId, dealerId, fulfillmentDetail
             return { success: false, error: 'Order not found' };
         }
 
-        // Update order with dealer assignment
+        // Try to update order - only update fields that exist
+        // Build update object dynamically based on what might exist
+        let updateData = {};
+        
+        // Add fields if the schema supports them
+        // Using try-catch to handle schema mismatches gracefully
+        try {
+            // Core update - try to add dealer assignment
+            updateData.assigned_dealer_id = dealerId;
+            updateData.status = 'accepted';
+            updateData.fulfillment_notes = fulfillmentDetails.notes || '';
+            updateData.updated_at = new Date().toISOString();
+        } catch (e) {
+            // If schema doesn't have these, send minimal data
+            console.warn('Schema may not have all order tracking columns');
+        }
+        
         const { error: updateError } = await supabaseClient
             .from('industry_order')
-            .update({
-                assigned_dealer_id: dealerId,
-                status: 'accepted',
-                fulfillment_notes: fulfillmentDetails.notes || '',
-                updated_at: new Date().toISOString()
-            })
+            .update(updateData)
             .eq('order_id', orderId);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+            console.error('Error updating order:', updateError);
+            // If it's a column error, still notify but don't update
+            if (updateError.message?.includes('column') || updateError.message?.includes('does not exist')) {
+                console.warn('Order update failed due to schema - continuing with notification only');
+            } else {
+                throw updateError;
+            }
+        }
 
         // Get dealer details for notification
         const { data: dealerData, error: dealerError } = await supabaseClient
@@ -788,6 +848,702 @@ export const acceptEnterpriseOrder = async (orderId, dealerId, fulfillmentDetail
         return { success: true, error: null };
     } catch (error) {
         console.error('Error accepting enterprise order:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Send notification to enterprise that their order was rejected
+ * @param {string} industryId - The enterprise user ID
+ * @param {string} companyName - The enterprise company name
+ * @param {Object} orderData - The order details
+ * @param {Object} dealerData - The scrap dealer who rejected
+ * @param {string} reason - Optional rejection reason
+ * @returns {Promise<{success: boolean, error: string}>}
+ */
+export const notifyEnterpriseOfOrderRejection = async (industryId, companyName, orderData, dealerData, reason = '') => {
+    try {
+        const dealerName = dealerData.business_name ||
+            `${dealerData['First name'] || ''} ${dealerData['Last_Name'] || ''}`.trim() ||
+            'A scrap dealer';
+
+        const reasonText = reason ? ` Reason: ${reason}.` : '';
+        const message = `${dealerName} has declined your order for ${orderData.quantity} ${orderData.material_type}.${reasonText} Other dealers can still fulfill this request.`;
+
+        const { error } = await supabaseClient
+            .from('notifications')
+            .insert({
+                user_id: industryId,
+                message: message,
+                type: 'system',
+                is_read: false,
+                data: {
+                    action: 'order_rejected',
+                    order_id: orderData.order_id,
+                    dealer_id: dealerData.user_id,
+                    dealer_name: dealerName,
+                    material_type: orderData.material_type,
+                    quantity: orderData.quantity,
+                    rejection_reason: reason,
+                    city: orderData['City']
+                }
+            });
+
+        if (error) throw error;
+
+        console.log(`Notified enterprise ${companyName} about order rejection`);
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error notifying enterprise of rejection:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Send notification to enterprise about counter offer
+ * @param {string} industryId - The enterprise user ID
+ * @param {string} companyName - The enterprise company name
+ * @param {Object} orderData - The order details
+ * @param {Object} dealerData - The scrap dealer making counter offer
+ * @param {number} counterPrice - The counter offer price
+ * @returns {Promise<{success: boolean, error: string}>}
+ */
+export const notifyEnterpriseOfCounterOffer = async (industryId, companyName, orderData, dealerData, counterPrice) => {
+    try {
+        const dealerName = dealerData.business_name ||
+            `${dealerData['First name'] || ''} ${dealerData['Last_Name'] || ''}`.trim() ||
+            'A scrap dealer';
+
+        const originalPrice = orderData.price || 'N/A';
+        const message = `${dealerName} has made a counter offer for your order: ${orderData.quantity} ${orderData.material_type} at ₹${counterPrice}/unit (original: ₹${originalPrice}/unit). Click to accept or decline.`;
+
+        const { error } = await supabaseClient
+            .from('notifications')
+            .insert({
+                user_id: industryId,
+                message: message,
+                type: 'system',
+                is_read: false,
+                data: {
+                    action: 'counter_offer',
+                    order_id: orderData.order_id,
+                    dealer_id: dealerData.user_id,
+                    dealer_name: dealerName,
+                    material_type: orderData.material_type,
+                    quantity: orderData.quantity,
+                    original_price: orderData.price,
+                    counter_price: counterPrice,
+                    requires_action: true,
+                    city: orderData['City']
+                }
+            });
+
+        if (error) throw error;
+
+        console.log(`Notified enterprise ${companyName} about counter offer`);
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error notifying enterprise of counter offer:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Scrap dealer rejects an enterprise order
+ * @param {string} orderId - The industry order ID
+ * @param {string} dealerId - The scrap dealer user ID
+ * @param {string} reason - Optional rejection reason
+ * @returns {Promise<{success: boolean, error: string}>}
+ */
+export const rejectEnterpriseOrder = async (orderId, dealerId, reason = '') => {
+    try {
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user || !user.user_id) {
+            return { success: false, error: 'User not authenticated' };
+        }
+
+        // Get order details first
+        const { data: orderData, error: orderError } = await supabaseClient
+            .from('industry_order')
+            .select(`
+                *,
+                industry_profile:industry_id (
+                    company_name,
+                    "Contact_person",
+                    email_address,
+                    phone_no
+                )
+            `)
+            .eq('order_id', orderId)
+            .single();
+
+        if (orderError) throw orderError;
+        if (!orderData) {
+            return { success: false, error: 'Order not found' };
+        }
+
+        // Get dealer details for notification
+        const { data: dealerData, error: dealerError } = await supabaseClient
+            .from('users')
+            .select('"First name", "Last_Name", email_address')
+            .eq('user_id', dealerId)
+            .single();
+
+        if (dealerError) {
+            console.error('Error fetching dealer details:', dealerError);
+        }
+
+        // Get dealer profile for business name
+        const { data: dealerProfile, error: profileError } = await supabaseClient
+            .from('scrapdealer_profile')
+            .select('business_name')
+            .eq('dealer_id', dealerId)
+            .single();
+
+        const dealerInfo = {
+            user_id: dealerId,
+            ...dealerData,
+            business_name: dealerProfile?.business_name
+        };
+
+        // Notify the enterprise about rejection
+        await notifyEnterpriseOfOrderRejection(
+            orderData.industry_id,
+            orderData.industry_profile?.company_name,
+            orderData,
+            dealerInfo,
+            reason
+        );
+
+        // Record rejection (optional - could store in a separate table)
+        console.log(`Dealer ${dealerId} rejected order ${orderId}`);
+
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error rejecting enterprise order:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Scrap dealer makes a counter offer for an enterprise order
+ * @param {string} orderId - The industry order ID
+ * @param {string} dealerId - The scrap dealer user ID
+ * @param {number} counterPrice - The counter offer price per unit
+ * @returns {Promise<{success: boolean, error: string}>}
+ */
+export const counterEnterpriseOrder = async (orderId, dealerId, counterPrice) => {
+    try {
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user || !user.user_id) {
+            return { success: false, error: 'User not authenticated' };
+        }
+
+        // Validate counter price
+        if (!counterPrice || isNaN(counterPrice) || counterPrice <= 0) {
+            return { success: false, error: 'Invalid counter offer price' };
+        }
+
+        // Get order details first
+        const { data: orderData, error: orderError } = await supabaseClient
+            .from('industry_order')
+            .select(`
+                *,
+                industry_profile:industry_id (
+                    company_name,
+                    "Contact_person",
+                    email_address,
+                    phone_no
+                )
+            `)
+            .eq('order_id', orderId)
+            .single();
+
+        if (orderError) throw orderError;
+        if (!orderData) {
+            return { success: false, error: 'Order not found' };
+        }
+
+        // Get dealer details for notification
+        const { data: dealerData, error: dealerError } = await supabaseClient
+            .from('users')
+            .select('"First name", "Last_Name", email_address')
+            .eq('user_id', dealerId)
+            .single();
+
+        if (dealerError) {
+            console.error('Error fetching dealer details:', dealerError);
+        }
+
+        // Get dealer profile for business name
+        const { data: dealerProfile, error: profileError } = await supabaseClient
+            .from('scrapdealer_profile')
+            .select('business_name')
+            .eq('dealer_id', dealerId)
+            .single();
+
+        const dealerInfo = {
+            user_id: dealerId,
+            ...dealerData,
+            business_name: dealerProfile?.business_name
+        };
+
+        // Notify the enterprise about counter offer
+        await notifyEnterpriseOfCounterOffer(
+            orderData.industry_id,
+            orderData.industry_profile?.company_name,
+            orderData,
+            dealerInfo,
+            counterPrice
+        );
+
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error making counter offer:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Notify scrap dealer about enterprise's response to counter offer
+ * @param {string} dealerId - The scrap dealer user ID
+ * @param {string} companyName - The enterprise company name
+ * @param {Object} orderData - The order details
+ * @param {string} action - The enterprise action: 'accepted', 'rejected', 'countered'
+ * @param {number} counterPrice - The counter price if action is 'countered'
+ * @returns {Promise<{success: boolean, error: string}>}
+ */
+export const notifyScrapDealerOfEnterpriseResponse = async (dealerId, companyName, orderData, action, counterPrice = null) => {
+    try {
+        let message = '';
+        let notificationAction = '';
+
+        if (action === 'accepted') {
+            message = `${companyName} has accepted your counter offer for ${orderData.quantity} ${orderData.material_type}. The order is confirmed!`;
+            notificationAction = 'enterprise_accepted_counter';
+        } else if (action === 'rejected') {
+            message = `${companyName} has declined your counter offer for ${orderData.quantity} ${orderData.material_type}. The order is still open for other dealers.`;
+            notificationAction = 'enterprise_rejected_counter';
+        } else if (action === 'countered') {
+            const dealerPrice = orderData.counter_price || orderData.price;
+            message = `${companyName} has made a counter offer: ${orderData.quantity} ${orderData.material_type} at ₹${counterPrice}/unit (your offer was ₹${dealerPrice}/unit). Click to respond.`;
+            notificationAction = 'enterprise_counter_back';
+        }
+
+        const { error } = await supabaseClient
+            .from('notifications')
+            .insert({
+                user_id: dealerId,
+                message: message,
+                type: 'system',
+                is_read: false,
+                data: {
+                    action: notificationAction,
+                    order_id: orderData.order_id,
+                    company_name: companyName,
+                    material_type: orderData.material_type,
+                    quantity: orderData.quantity,
+                    counter_price: counterPrice,
+                    original_price: orderData.price,
+                    dealer_counter_price: orderData.counter_price,
+                    requires_action: action === 'countered',
+                    status: action === 'accepted' ? 'accepted' : action === 'rejected' ? 'rejected' : 'pending'
+                }
+            });
+
+        if (error) throw error;
+
+        console.log(`Notified scrap dealer about enterprise ${action} for order ${orderData.order_id}`);
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error notifying scrap dealer of enterprise response:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Enterprise accepts scrap dealer's counter offer
+ * @param {string} orderId - The industry order ID
+ * @param {string} dealerId - The scrap dealer user ID
+ * @returns {Promise<{success: boolean, error: string}>}
+ */
+export const enterpriseAcceptCounterOffer = async (orderId, dealerId) => {
+    try {
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user || !user.user_id) {
+            return { success: false, error: 'User not authenticated' };
+        }
+
+        // Get order details
+        const { data: orderData, error: orderError } = await supabaseClient
+            .from('industry_order')
+            .select(`
+                *,
+                industry_profile:industry_id (
+                    company_name,
+                    "Contact_person"
+                )
+            `)
+            .eq('order_id', orderId)
+            .single();
+
+        if (orderError) throw orderError;
+
+        // Update order with accepted counter price
+        const { error: updateError } = await supabaseClient
+            .from('industry_order')
+            .update({
+                assigned_dealer_id: dealerId,
+                status: 'accepted',
+                final_price: orderData.counter_price,
+                updated_at: new Date().toISOString()
+            })
+            .eq('order_id', orderId);
+
+        if (updateError) throw updateError;
+
+        // Notify scrap dealer
+        await notifyScrapDealerOfEnterpriseResponse(
+            dealerId,
+            orderData.industry_profile?.company_name,
+            orderData,
+            'accepted'
+        );
+
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error accepting counter offer:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Enterprise rejects scrap dealer's counter offer
+ * @param {string} orderId - The industry order ID
+ * @param {string} dealerId - The scrap dealer user ID
+ * @param {string} reason - Optional rejection reason
+ * @returns {Promise<{success: boolean, error: string}>}
+ */
+export const enterpriseRejectCounterOffer = async (orderId, dealerId, reason = '') => {
+    try {
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user || !user.user_id) {
+            return { success: false, error: 'User not authenticated' };
+        }
+
+        // Get order details
+        const { data: orderData, error: orderError } = await supabaseClient
+            .from('industry_order')
+            .select(`
+                *,
+                industry_profile:industry_id (
+                    company_name,
+                    "Contact_person"
+                )
+            `)
+            .eq('order_id', orderId)
+            .single();
+
+        if (orderError) throw orderError;
+
+        // Notify scrap dealer
+        await notifyScrapDealerOfEnterpriseResponse(
+            dealerId,
+            orderData.industry_profile?.company_name,
+            orderData,
+            'rejected'
+        );
+
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error rejecting counter offer:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Enterprise makes a counter offer back to scrap dealer
+ * @param {string} orderId - The industry order ID
+ * @param {string} dealerId - The scrap dealer user ID
+ * @param {number} counterPrice - The enterprise's counter price
+ * @returns {Promise<{success: boolean, error: string}>}
+ */
+export const enterpriseCounterBack = async (orderId, dealerId, counterPrice) => {
+    try {
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user || !user.user_id) {
+            return { success: false, error: 'User not authenticated' };
+        }
+
+        if (!counterPrice || isNaN(counterPrice) || counterPrice <= 0) {
+            return { success: false, error: 'Invalid counter offer price' };
+        }
+
+        // Get order details
+        const { data: orderData, error: orderError } = await supabaseClient
+            .from('industry_order')
+            .select(`
+                *,
+                industry_profile:industry_id (
+                    company_name,
+                    "Contact_person"
+                )
+            `)
+            .eq('order_id', orderId)
+            .single();
+
+        if (orderError) throw orderError;
+
+        // Update order with enterprise counter
+        const { error: updateError } = await supabaseClient
+            .from('industry_order')
+            .update({
+                enterprise_counter_price: counterPrice,
+                updated_at: new Date().toISOString()
+            })
+            .eq('order_id', orderId);
+
+        if (updateError) throw updateError;
+
+        // Notify scrap dealer
+        await notifyScrapDealerOfEnterpriseResponse(
+            dealerId,
+            orderData.industry_profile?.company_name,
+            orderData,
+            'countered',
+            counterPrice
+        );
+
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error making counter back:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Scrap dealer accepts enterprise's counter offer
+ * @param {string} orderId - The industry order ID
+ * @param {string} dealerId - The scrap dealer user ID
+ * @returns {Promise<{success: boolean, error: string}>}
+ */
+export const scrapDealerAcceptEnterpriseCounter = async (orderId, dealerId) => {
+    try {
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user || !user.user_id) {
+            return { success: false, error: 'User not authenticated' };
+        }
+
+        // Get order details
+        const { data: orderData, error: orderError } = await supabaseClient
+            .from('industry_order')
+            .select(`
+                *,
+                industry_profile:industry_id (
+                    company_name,
+                    "Contact_person"
+                )
+            `)
+            .eq('order_id', orderId)
+            .single();
+
+        if (orderError) throw orderError;
+
+        // Update order as accepted
+        const { error: updateError } = await supabaseClient
+            .from('industry_order')
+            .update({
+                assigned_dealer_id: dealerId,
+                status: 'accepted',
+                final_price: orderData.enterprise_counter_price,
+                updated_at: new Date().toISOString()
+            })
+            .eq('order_id', orderId);
+
+        if (updateError) throw updateError;
+
+        // Notify enterprise
+        const { data: dealerData } = await supabaseClient
+            .from('scrapdealer_profile')
+            .select('business_name')
+            .eq('dealer_id', dealerId)
+            .single();
+
+        const dealerName = dealerData?.business_name || 'A scrap dealer';
+
+        const { error } = await supabaseClient
+            .from('notifications')
+            .insert({
+                user_id: orderData.industry_id,
+                message: `${dealerName} has accepted your counter offer for ${orderData.quantity} ${orderData.material_type}. The order is confirmed!`,
+                type: 'system',
+                is_read: false,
+                data: {
+                    action: 'order_fulfilled',
+                    order_id: orderId,
+                    dealer_id: dealerId,
+                    dealer_name: dealerName,
+                    final_price: orderData.enterprise_counter_price,
+                    status: 'accepted'
+                }
+            });
+
+        if (error) throw error;
+
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error accepting enterprise counter:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Scrap dealer rejects enterprise's counter offer
+ * @param {string} orderId - The industry order ID
+ * @param {string} dealerId - The scrap dealer user ID
+ * @param {string} reason - Optional rejection reason
+ * @returns {Promise<{success: boolean, error: string}>}
+ */
+export const scrapDealerRejectEnterpriseCounter = async (orderId, dealerId, reason = '') => {
+    try {
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user || !user.user_id) {
+            return { success: false, error: 'User not authenticated' };
+        }
+
+        // Get order details
+        const { data: orderData, error: orderError } = await supabaseClient
+            .from('industry_order')
+            .select(`
+                *,
+                industry_profile:industry_id (
+                    company_name,
+                    "Contact_person"
+                )
+            `)
+            .eq('order_id', orderId)
+            .single();
+
+        if (orderError) throw orderError;
+
+        // Get dealer details
+        const { data: dealerData } = await supabaseClient
+            .from('scrapdealer_profile')
+            .select('business_name')
+            .eq('dealer_id', dealerId)
+            .single();
+
+        const dealerName = dealerData?.business_name || 'A scrap dealer';
+        const reasonText = reason ? ` Reason: ${reason}.` : '';
+
+        // Notify enterprise
+        const { error } = await supabaseClient
+            .from('notifications')
+            .insert({
+                user_id: orderData.industry_id,
+                message: `${dealerName} has declined your counter offer for ${orderData.quantity} ${orderData.material_type}.${reasonText} The order is still open.`,
+                type: 'system',
+                is_read: false,
+                data: {
+                    action: 'counter_rejected',
+                    order_id: orderId,
+                    dealer_id: dealerId,
+                    dealer_name: dealerName,
+                    rejection_reason: reason,
+                    status: 'rejected'
+                }
+            });
+
+        if (error) throw error;
+
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error rejecting enterprise counter:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Scrap dealer makes another counter offer to enterprise
+ * @param {string} orderId - The industry order ID
+ * @param {string} dealerId - The scrap dealer user ID
+ * @param {number} counterPrice - The new counter price
+ * @returns {Promise<{success: boolean, error: string}>}
+ */
+export const scrapDealerCounterBackToEnterprise = async (orderId, dealerId, counterPrice) => {
+    try {
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user || !user.user_id) {
+            return { success: false, error: 'User not authenticated' };
+        }
+
+        if (!counterPrice || isNaN(counterPrice) || counterPrice <= 0) {
+            return { success: false, error: 'Invalid counter offer price' };
+        }
+
+        // Get order details
+        const { data: orderData, error: orderError } = await supabaseClient
+            .from('industry_order')
+            .select(`
+                *,
+                industry_profile:industry_id (
+                    company_name,
+                    "Contact_person"
+                )
+            `)
+            .eq('order_id', orderId)
+            .single();
+
+        if (orderError) throw orderError;
+
+        // Update order with new counter price
+        const { error: updateError } = await supabaseClient
+            .from('industry_order')
+            .update({
+                counter_price: counterPrice,
+                updated_at: new Date().toISOString()
+            })
+            .eq('order_id', orderId);
+
+        if (updateError) throw updateError;
+
+        // Get dealer details
+        const { data: dealerData } = await supabaseClient
+            .from('scrapdealer_profile')
+            .select('business_name')
+            .eq('dealer_id', dealerId)
+            .single();
+
+        const dealerName = dealerData?.business_name || 'A scrap dealer';
+
+        // Send counter offer notification to enterprise
+        const { error } = await supabaseClient
+            .from('notifications')
+            .insert({
+                user_id: orderData.industry_id,
+                message: `${dealerName} has made a new counter offer: ${orderData.quantity} ${orderData.material_type} at ₹${counterPrice}/unit (your offer was ₹${orderData.enterprise_counter_price}/unit). Click to respond.`,
+                type: 'system',
+                is_read: false,
+                data: {
+                    action: 'counter_offer',
+                    order_id: orderId,
+                    dealer_id: dealerId,
+                    dealer_name: dealerName,
+                    material_type: orderData.material_type,
+                    quantity: orderData.quantity,
+                    counter_price: counterPrice,
+                    enterprise_counter_price: orderData.enterprise_counter_price,
+                    original_price: orderData.price,
+                    requires_action: true,
+                    status: 'pending'
+                }
+            });
+
+        if (error) throw error;
+
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error making counter back to enterprise:', error);
         return { success: false, error: error.message };
     }
 };

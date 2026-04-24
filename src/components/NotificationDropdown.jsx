@@ -12,7 +12,17 @@ import {
     formatNotificationTime,
     getNotificationIcon,
     getNotificationColor,
-    respondToScrapRequest
+    respondToScrapRequest,
+    acceptEnterpriseOrder,
+    rejectEnterpriseOrder,
+    counterEnterpriseOrder,
+    enterpriseAcceptCounterOffer,
+    enterpriseRejectCounterOffer,
+    enterpriseCounterBack,
+    scrapDealerAcceptEnterpriseCounter,
+    scrapDealerRejectEnterpriseCounter,
+    scrapDealerCounterBackToEnterprise,
+    updateNotificationData
 } from '../services/notificationService';
 import './NotificationDropdown.css';
 
@@ -84,7 +94,10 @@ const NotificationDropdown = ({ user }) => {
     // Handle notification click
     const handleNotificationClick = async (notification) => {
         if (!notification.is_read) {
-            const { success } = await markNotificationAsRead(notification.id);
+            console.log('Marking notification as read:', notification.id);
+            const { success, error } = await markNotificationAsRead(notification.id);
+            console.log('Mark as read result:', { success, error });
+            
             if (success) {
                 setNotifications(prev =>
                     prev.map(n =>
@@ -92,6 +105,8 @@ const NotificationDropdown = ({ user }) => {
                     )
                 );
                 setUnreadCount(prev => Math.max(0, prev - 1));
+            } else {
+                console.error('Failed to mark notification as read:', error);
             }
         }
     };
@@ -152,11 +167,23 @@ const NotificationDropdown = ({ user }) => {
         const { success, error } = await respondToScrapRequest(orderId, action, counterPrice);
 
         if (success) {
+            const statusValue = action === 'accept' ? 'accepted' : action === 'decline' ? 'declined' : 'countered';
+            
+            // Persist status to database
+            const { success: updateSuccess } = await updateNotificationData(notification.id, { 
+                status: statusValue,
+                requires_action: false 
+            });
+            
+            if (!updateSuccess) {
+                console.error('Failed to persist notification status');
+            }
+            
             // Update notification status locally
             setNotifications(prev =>
                 prev.map(n =>
                     n.id === notification.id
-                        ? { ...n, data: { ...n.data, status: action === 'accept' ? 'accepted' : action === 'decline' ? 'declined' : 'countered' } }
+                        ? { ...n, data: { ...n.data, status: statusValue, requires_action: false } }
                         : n
                 )
             );
@@ -169,6 +196,194 @@ const NotificationDropdown = ({ user }) => {
             alert(message);
         } else {
             alert('Failed to respond: ' + error);
+        }
+    };
+
+    // Handle enterprise order response (accept/counter/decline)
+    const handleEnterpriseOrderResponse = async (e, notification, action) => {
+        e.stopPropagation();
+
+        const orderId = notification.data?.order_id;
+        if (!orderId) return;
+
+        const dealerId = user?.user_id;
+        if (!dealerId) {
+            alert('Please log in to respond to this order');
+            return;
+        }
+
+        let counterPrice = null;
+        let reason = '';
+
+        if (action === 'counter_offer') {
+            counterPrice = prompt('Enter your counter offer price (₹/unit):');
+            if (!counterPrice || isNaN(counterPrice)) return;
+        } else if (action === 'decline') {
+            reason = prompt('Enter reason for declining (optional):') || '';
+        }
+
+        let result;
+        if (action === 'accept') {
+            result = await acceptEnterpriseOrder(orderId, dealerId);
+        } else if (action === 'decline') {
+            result = await rejectEnterpriseOrder(orderId, dealerId, reason);
+        } else if (action === 'counter_offer') {
+            result = await counterEnterpriseOrder(orderId, dealerId, parseFloat(counterPrice));
+        }
+
+        if (result.success) {
+            const statusValue = action === 'accept' ? 'accepted' : action === 'decline' ? 'declined' : 'countered';
+            
+            // Persist status to database
+            const { success: updateSuccess } = await updateNotificationData(notification.id, { 
+                status: statusValue,
+                requires_action: false 
+            });
+            
+            if (!updateSuccess) {
+                console.error('Failed to persist notification status');
+            }
+            
+            // Update notification status locally
+            setNotifications(prev =>
+                prev.map(n =>
+                    n.id === notification.id
+                        ? { ...n, data: { ...n.data, status: statusValue, requires_action: false } }
+                        : n
+                )
+            );
+
+            const message = action === 'accept'
+                ? 'Order accepted! The enterprise has been notified and will prepare for delivery.'
+                : action === 'decline'
+                    ? 'Order declined. Other dealers can still fulfill this request.'
+                    : `Counter offer of ₹${counterPrice}/unit sent to the enterprise!`;
+            alert(message);
+        } else {
+            alert('Failed to respond: ' + result.error);
+        }
+    };
+
+    // Handle enterprise responding to scrap dealer's counter offer
+    const handleEnterpriseCounterResponse = async (e, notification, action) => {
+        e.stopPropagation();
+
+        const orderId = notification.data?.order_id;
+        const dealerId = notification.data?.dealer_id;
+        if (!orderId || !dealerId) return;
+
+        let counterPrice = null;
+        let reason = '';
+
+        if (action === 'counter_offer') {
+            counterPrice = prompt('Enter your counter offer price (₹/unit):');
+            if (!counterPrice || isNaN(counterPrice)) return;
+        } else if (action === 'decline') {
+            reason = prompt('Enter reason for declining (optional):') || '';
+        }
+
+        let result;
+        if (action === 'accept') {
+            result = await enterpriseAcceptCounterOffer(orderId, dealerId);
+        } else if (action === 'decline') {
+            result = await enterpriseRejectCounterOffer(orderId, dealerId, reason);
+        } else if (action === 'counter_offer') {
+            result = await enterpriseCounterBack(orderId, dealerId, parseFloat(counterPrice));
+        }
+
+        if (result.success) {
+            const statusValue = action === 'accept' ? 'accepted' : action === 'decline' ? 'rejected' : 'countered';
+            
+            // Persist status to database
+            const { success: updateSuccess } = await updateNotificationData(notification.id, { 
+                status: statusValue,
+                requires_action: false 
+            });
+            
+            if (!updateSuccess) {
+                console.error('Failed to persist notification status');
+            }
+            
+            setNotifications(prev =>
+                prev.map(n =>
+                    n.id === notification.id
+                        ? { ...n, data: { ...n.data, status: statusValue, requires_action: false } }
+                        : n
+                )
+            );
+
+            const message = action === 'accept'
+                ? 'Counter offer accepted! The scrap dealer has been notified.'
+                : action === 'decline'
+                    ? 'Counter offer declined.'
+                    : `Counter offer of ₹${counterPrice}/unit sent to the scrap dealer!`;
+            alert(message);
+        } else {
+            alert('Failed to respond: ' + result.error);
+        }
+    };
+
+    // Handle scrap dealer responding to enterprise's counter offer
+    const handleScrapDealerCounterResponse = async (e, notification, action) => {
+        e.stopPropagation();
+
+        const orderId = notification.data?.order_id;
+        if (!orderId) return;
+
+        const dealerId = user?.user_id;
+        if (!dealerId) {
+            alert('Please log in to respond');
+            return;
+        }
+
+        let counterPrice = null;
+        let reason = '';
+
+        if (action === 'counter_offer') {
+            counterPrice = prompt('Enter your counter offer price (₹/unit):');
+            if (!counterPrice || isNaN(counterPrice)) return;
+        } else if (action === 'decline') {
+            reason = prompt('Enter reason for declining (optional):') || '';
+        }
+
+        let result;
+        if (action === 'accept') {
+            result = await scrapDealerAcceptEnterpriseCounter(orderId, dealerId);
+        } else if (action === 'decline') {
+            result = await scrapDealerRejectEnterpriseCounter(orderId, dealerId, reason);
+        } else if (action === 'counter_offer') {
+            result = await scrapDealerCounterBackToEnterprise(orderId, dealerId, parseFloat(counterPrice));
+        }
+
+        if (result.success) {
+            const statusValue = action === 'accept' ? 'accepted' : action === 'decline' ? 'rejected' : 'countered';
+            
+            // Persist status to database
+            const { success: updateSuccess } = await updateNotificationData(notification.id, { 
+                status: statusValue,
+                requires_action: false 
+            });
+            
+            if (!updateSuccess) {
+                console.error('Failed to persist notification status');
+            }
+            
+            setNotifications(prev =>
+                prev.map(n =>
+                    n.id === notification.id
+                        ? { ...n, data: { ...n.data, status: statusValue, requires_action: false } }
+                        : n
+                )
+            );
+
+            const message = action === 'accept'
+                ? 'You accepted the counter offer! The enterprise has been notified.'
+                : action === 'decline'
+                    ? 'You declined the counter offer.'
+                    : `Counter offer of ₹${counterPrice}/unit sent back to the enterprise!`;
+            alert(message);
+        } else {
+            alert('Failed to respond: ' + result.error);
         }
     };
 
@@ -331,6 +546,119 @@ const NotificationDropdown = ({ user }) => {
                                                                 notification.data?.status === 'countered' ? '↻ Countered' : ''}
                                                     </span>
                                                 )}
+                                            </div>
+                                        )}
+
+                                        {/* Enterprise Order Request Action Buttons */}
+                                        {notification.data?.action === 'enterprise_order_request' && (
+                                            <div className="notification-actions-row">
+                                                {notification.data?.status === 'pending' || !notification.data?.status ? (
+                                                    <>
+                                                        <button
+                                                            className="action-btn-accept"
+                                                            onClick={(e) => handleEnterpriseOrderResponse(e, notification, 'accept')}
+                                                        >
+                                                            ✓ Accept Order
+                                                        </button>
+                                                        <button
+                                                            className="action-btn-counter"
+                                                            onClick={(e) => handleEnterpriseOrderResponse(e, notification, 'counter_offer')}
+                                                        >
+                                                            ↻ Counter Offer
+                                                        </button>
+                                                        <button
+                                                            className="action-btn-decline"
+                                                            onClick={(e) => handleEnterpriseOrderResponse(e, notification, 'decline')}
+                                                        >
+                                                            ✕ Decline
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <span className={`status-badge ${notification.data?.status}`}>
+                                                        {notification.data?.status === 'accepted' ? '✓ Order Accepted' :
+                                                            notification.data?.status === 'declined' ? '✕ Order Declined' :
+                                                                notification.data?.status === 'countered' ? '↻ Counter Offer Sent' : ''}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Enterprise Counter Offer Response (Enterprise receives from scrap dealer) */}
+                                        {notification.data?.action === 'counter_offer' && notification.data?.requires_action && (
+                                            <div className="notification-actions-row">
+                                                {notification.data?.status === 'pending' || !notification.data?.status ? (
+                                                    <>
+                                                        <button
+                                                            className="action-btn-accept"
+                                                            onClick={(e) => handleEnterpriseCounterResponse(e, notification, 'accept')}
+                                                        >
+                                                            ✓ Accept Counter
+                                                        </button>
+                                                        <button
+                                                            className="action-btn-counter"
+                                                            onClick={(e) => handleEnterpriseCounterResponse(e, notification, 'counter_offer')}
+                                                        >
+                                                            ↻ Counter Back
+                                                        </button>
+                                                        <button
+                                                            className="action-btn-decline"
+                                                            onClick={(e) => handleEnterpriseCounterResponse(e, notification, 'decline')}
+                                                        >
+                                                            ✕ Decline
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <span className={`status-badge ${notification.data?.status}`}>
+                                                        {notification.data?.status === 'accepted' ? '✓ Counter Accepted' :
+                                                            notification.data?.status === 'rejected' ? '✕ Counter Rejected' :
+                                                                notification.data?.status === 'countered' ? '↻ Countered Back' : ''}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Scrap Dealer receives Enterprise's counter back */}
+                                        {notification.data?.action === 'enterprise_counter_back' && notification.data?.requires_action && (
+                                            <div className="notification-actions-row">
+                                                {notification.data?.status === 'pending' || !notification.data?.status ? (
+                                                    <>
+                                                        <button
+                                                            className="action-btn-accept"
+                                                            onClick={(e) => handleScrapDealerCounterResponse(e, notification, 'accept')}
+                                                        >
+                                                            ✓ Accept
+                                                        </button>
+                                                        <button
+                                                            className="action-btn-counter"
+                                                            onClick={(e) => handleScrapDealerCounterResponse(e, notification, 'counter_offer')}
+                                                        >
+                                                            ↻ Counter Again
+                                                        </button>
+                                                        <button
+                                                            className="action-btn-decline"
+                                                            onClick={(e) => handleScrapDealerCounterResponse(e, notification, 'decline')}
+                                                        >
+                                                            ✕ Decline
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <span className={`status-badge ${notification.data?.status}`}>
+                                                        {notification.data?.status === 'accepted' ? '✓ Accepted' :
+                                                            notification.data?.status === 'rejected' ? '✕ Declined' :
+                                                                notification.data?.status === 'countered' ? '↻ Countered' : ''}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Status notifications (no action needed) */}
+                                        {(notification.data?.action === 'enterprise_accepted_counter' ||
+                                          notification.data?.action === 'enterprise_rejected_counter') && (
+                                            <div className="notification-actions-row">
+                                                <span className={`status-badge ${notification.data?.status}`}>
+                                                    {notification.data?.status === 'accepted' ? '✓ Your Counter Was Accepted!' :
+                                                        notification.data?.status === 'rejected' ? '✕ Your Counter Was Rejected' : ''}
+                                                </span>
                                             </div>
                                         )}
                                     </div>

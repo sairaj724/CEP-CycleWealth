@@ -87,7 +87,12 @@ function CompanyOrder() {
                 phoneNo: orderData.contactPhone
             });
 
-            alert('Your scrap order has been submitted successfully! Dealers will contact you shortly.');
+            const confirmView = confirm('Your scrap order has been submitted successfully! Dealers will contact you shortly.\n\nWould you like to view all your orders?');
+            
+            if (confirmView) {
+                navigate('/orderhistory');
+                return;
+            }
             
             // Reset form
             setOrderData({
@@ -103,13 +108,16 @@ function CompanyOrder() {
                 contactPhone: ''
             });
 
-            // Refresh order
-            const updatedOrder = await getIndustryOrder();
-            setExistingOrder(updatedOrder);
             setShowForm(false);
         } catch (err) {
             console.error('Error submitting order:', err);
-            setError(err.message || 'Failed to submit order. Please try again.');
+            const errorMsg = err.message || 'Failed to submit order. Please try again.';
+            setError(errorMsg);
+            
+            // Show specific alert for constraint violation
+            if (errorMsg.includes('already have an active order')) {
+                alert('⚠️ ' + errorMsg + '\n\nYou can view your existing order or wait for it to be completed.');
+            }
         } finally {
             setLoading(false);
         }
@@ -122,8 +130,8 @@ function CompanyOrder() {
             {/* Hero Section */}
             <div className="company-order-hero">
                 <div className="company-order-hero-content">
-                    <h1>Place Your Scrap Order</h1>
-                    <p>Order quality scrap materials from verified dealers at competitive prices</p>
+                    <h1>Place Your Scrap Orders</h1>
+                    <p>Order quality scrap materials from verified dealers at competitive prices. Place multiple orders and track them all.</p>
                 </div>
             </div>
 
@@ -138,21 +146,31 @@ function CompanyOrder() {
             {!showForm && (
                 <div className="company-order-section">
                     <div className="order-container">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h2>My Order</h2>
-                            <button 
-                                className="add-item-btn"
-                                onClick={() => setShowForm(true)}
-                                disabled={existingOrder}
-                                style={existingOrder ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
-                            >
-                                {existingOrder ? 'Order Already Placed' : '+ New Order'}
-                            </button>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                            <h2>My Orders</h2>
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <button 
+                                    className="add-item-btn"
+                                    onClick={() => navigate('/orderhistory')}
+                                    style={{ background: '#3b82f6' }}
+                                >
+                                    📦 View All Orders
+                                </button>
+                                <button 
+                                    className="add-item-btn"
+                                    onClick={() => setShowForm(true)}
+                                >
+                                    + New Order
+                                </button>
+                            </div>
                         </div>
                         
                         {!existingOrder ? (
                             <div className="empty-state" style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
-                                <p>No order yet. Click "New Order" to place your scrap order!</p>
+                                <p>No recent order. Click "New Order" to place a scrap order!</p>
+                                <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                                    You can place multiple orders and view them all in your order history.
+                                </p>
                             </div>
                         ) : (
                             <div className="order-item-card">

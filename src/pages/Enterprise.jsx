@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SharedNavbar from "../components/SharedNavbar";
 import Footer from "../components/Footer";
-import { createOrGetIndustryProfile, getIndustryProfile, updateIndustryProfile, getPlatformStats } from "../services/enterpriseService";
+import { createOrGetIndustryProfile, getIndustryProfile, updateIndustryProfile, getPlatformStats, getIndustryOrder } from "../services/enterpriseService";
 import "./Enterprise.css";
 
 function Enterprise() {
@@ -20,6 +20,8 @@ function Enterprise() {
         totalTransactions: 0
     });
     const [statsLoading, setStatsLoading] = useState(true);
+    const [currentOrder, setCurrentOrder] = useState(null);
+    const [orderLoading, setOrderLoading] = useState(false);
     const [formData, setFormData] = useState({
         companyName: '',
         contactPerson: '',
@@ -47,7 +49,16 @@ function Enterprise() {
 
         // Fetch platform statistics
         fetchPlatformStats();
-    }, [navigate]);
+        
+        // Set up periodic refresh of order status every 30 seconds
+        const intervalId = setInterval(() => {
+            if (isRegistered) {
+                fetchCurrentOrder();
+            }
+        }, 30000);
+        
+        return () => clearInterval(intervalId);
+    }, [navigate, isRegistered]);
 
     const fetchPlatformStats = async () => {
         setStatsLoading(true);
@@ -79,9 +90,24 @@ function Enterprise() {
                     industryType: profileData.industry_type || '',
                     budgetRange: profileData['Budget'] || ''
                 });
+                
+                // Fetch current order status
+                fetchCurrentOrder();
             }
         } catch (err) {
             console.error('Error checking registration:', err);
+        }
+    };
+    
+    const fetchCurrentOrder = async () => {
+        setOrderLoading(true);
+        try {
+            const order = await getIndustryOrder();
+            setCurrentOrder(order);
+        } catch (err) {
+            console.error('Error fetching order:', err);
+        } finally {
+            setOrderLoading(false);
         }
     };
 
@@ -485,12 +511,70 @@ function Enterprise() {
                             <p><strong>Company Size:</strong> {profile?.company_size}</p>
                             <p><strong>Budget:</strong> ₹{profile?.['Budget']}</p>
                         </div>
+                        
+                        {/* Current Order Status Section */}
+                        {orderLoading ? (
+                            <div style={{ margin: '1rem 0', color: '#6b7280' }}>Loading order status...</div>
+                        ) : currentOrder ? (
+                            <div style={{ 
+                                textAlign: 'left', 
+                                maxWidth: '500px', 
+                                margin: '1rem auto 2rem', 
+                                background: currentOrder.status === 'accepted' ? '#dcfce7' : '#fef3c7', 
+                                padding: '1.5rem', 
+                                borderRadius: '8px',
+                                border: `2px solid ${currentOrder.status === 'accepted' ? '#16a34a' : '#f59e0b'}`
+                            }}>
+                                <h3 style={{ margin: '0 0 1rem 0', color: '#1f2937' }}>
+                                    {currentOrder.status === 'accepted' ? '✓ Order Accepted' : '⏳ Order Pending'}
+                                </h3>
+                                <p><strong>Material:</strong> {currentOrder.material_type}</p>
+                                <p><strong>Quantity:</strong> {currentOrder.quantity}</p>
+                                <p><strong>Price:</strong> ₹{currentOrder.price || 'Negotiable'}/unit</p>
+                                {currentOrder.final_price && (
+                                    <p><strong>Final Price:</strong> ₹{currentOrder.final_price}/unit</p>
+                                )}
+                                <p><strong>Delivery:</strong> {currentOrder['City']} - {currentOrder['Prefered_Delivery_Date']}</p>
+                                {currentOrder.status === 'accepted' && (
+                                    <p style={{ color: '#16a34a', fontWeight: '600', marginTop: '0.5rem' }}>
+                                        ✓ A scrap dealer has accepted your order!
+                                    </p>
+                                )}
+                            </div>
+                        ) : (
+                            <div style={{ 
+                                textAlign: 'center', 
+                                maxWidth: '500px', 
+                                margin: '1rem auto 2rem', 
+                                background: '#f3f4f6', 
+                                padding: '1.5rem', 
+                                borderRadius: '8px',
+                                color: '#6b7280'
+                            }}>
+                                <p>No active order. Click "Place Order" to create one.</p>
+                            </div>
+                        )}
+                        
                         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                             <button className="go-to-order-btn" onClick={() => setEditMode(true)}>
                                 Edit Profile
                             </button>
-                            <button className="go-to-order-btn" onClick={() => navigate('/companyorder')}>
-                                Place Order
+                            <button 
+                                className="go-to-order-btn" 
+                                onClick={() => navigate('/orderhistory')}
+                                style={{ background: '#3b82f6', color: 'white' }}
+                            >
+                                📦 My Orders
+                            </button>
+                            <button 
+                                className="go-to-order-btn" 
+                                onClick={() => navigate('/companyorder')}
+                                style={{ 
+                                    background: currentOrder?.status === 'accepted' ? '#16a34a' : '',
+                                    color: currentOrder?.status === 'accepted' ? 'white' : ''
+                                }}
+                            >
+                                + New Order
                             </button>
                         </div>
                     </div>
