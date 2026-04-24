@@ -46,7 +46,7 @@ function Navbar2({ activeLink = null, badgeCount = 0, user = null }) {
                 <Link to={homeRoute} className={`shared-nav__link ${activeLink === 'home' ? 'shared-nav__link--active' : ''}`}>
                     Home
                 </Link>
-                <Link to={homeRoute} className={`shared-nav__link ${activeLink === 'transactions' ? 'shared-nav__link--active' : ''}`}>
+                <Link to="/transactions" className={`shared-nav__link ${activeLink === 'transactions' ? 'shared-nav__link--active' : ''}`}>
                     Transactions
                 </Link>
                 <Link to="/connections" className={`shared-nav__link ${activeLink === 'connections' ? 'shared-nav__link--active' : ''}`}>
