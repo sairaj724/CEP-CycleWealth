@@ -24,6 +24,7 @@ import About from "./pages/About";
 import ScrapPrices from "./pages/ScrapPrices";
 import SegregationGuide from "./pages/SegregationGuide";
 import Contact from "./pages/Contact";
+import Notifications from "./pages/Notifications";
 
 console.log('App.jsx imports loaded')
 
@@ -89,6 +90,7 @@ function App() {
         <Route path="/scrap-prices" element={<ScrapPrices />} />
         <Route path="/segregation-guide" element={<SegregationGuide />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Routes>
     </BrowserRouter>
   );

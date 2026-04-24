@@ -25,6 +25,12 @@ function Consumer() {
         quantity: '',
         description: ''
     });
+    const [showRecyclingModal, setShowRecyclingModal] = useState(false);
+    const [recyclingForm, setRecyclingForm] = useState({
+        scrapType: '',
+        quantity: '',
+        description: ''
+    });
 
     // Haversine formula to calculate distance between two coordinates
     const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -250,6 +256,53 @@ function Consumer() {
             closeUpcycleModal();
         } catch (err) {
             console.error('Error sending upcycling request:', err);
+            alert('Failed to send request. Please try again.');
+        }
+    };
+
+    // Handle Send for Recycling button click
+    const handleSendForRecycling = (dealer) => {
+        setSelectedDealer(dealer);
+        setRecyclingForm({ scrapType: '', quantity: '', description: '' });
+        setShowRecyclingModal(true);
+    };
+
+    // Close recycling modal
+    const closeRecyclingModal = () => {
+        setShowRecyclingModal(false);
+        setSelectedDealer(null);
+        setRecyclingForm({ scrapType: '', quantity: '', description: '' });
+    };
+
+    // Submit recycling request
+    const submitRecyclingRequest = async () => {
+        if (!recyclingForm.scrapType || !recyclingForm.quantity) {
+            alert('Please fill in scrap type and quantity');
+            return;
+        }
+
+        try {
+            const sessionUser = sessionStorage.getItem('user');
+            const user = JSON.parse(sessionUser);
+
+            const { error } = await supabaseClient
+                .from('recycling_requests')
+                .insert([{
+                    consumer_id: user.user_id,
+                    dealer_id: selectedDealer.id,
+                    scrap_type: recyclingForm.scrapType,
+                    quantity_kg: parseFloat(recyclingForm.quantity),
+                    description: recyclingForm.description,
+                    status: 'pending',
+                    created_at: new Date().toISOString()
+                }]);
+
+            if (error) throw error;
+
+            alert('Recycling request sent successfully!');
+            closeRecyclingModal();
+        } catch (err) {
+            console.error('Error sending recycling request:', err);
             alert('Failed to send request. Please try again.');
         }
     };
