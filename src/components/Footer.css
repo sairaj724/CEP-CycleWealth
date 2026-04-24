@@ -1,7 +1,7 @@
 .footer {
-    background: #1a1a2e;
+    background: #f2ececd3;
     padding: 50px 20px 0;
-    color: #e0e0e0;
+    color: black;
 }
 
 .footer-container {
@@ -18,7 +18,7 @@
 }
 
 .footer-section p {
-    color: #b0b0b0;
+    color: black;
     font-size: 14px;
     margin-bottom: 12px;
     line-height: 1.6;
@@ -32,12 +32,12 @@
 .footer-section ul li {
     margin: 10px 0;
     cursor: pointer;
-    color: #d0d0d0;
+    color: black;
     transition: color 0.3s ease;
 }
 
 .footer-section ul li a {
-    color: #d0d0d0;
+    color: black;
     text-decoration: none;
     transition: color 0.3s ease;
 }
@@ -87,7 +87,7 @@
     padding: 20px 0;
     text-align: center;
     background: #0f0f1a;
-    color: #888;
+    color: white;
     font-size: 14px;
 }
 
